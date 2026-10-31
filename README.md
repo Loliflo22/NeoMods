@@ -1,8 +1,8 @@
 # NeoMods
 
-A hub for mods and plugins for [NeoLegacy](https://github.com/pieeebot/neoLegacy). The site is plain HTML, CSS and JavaScript and runs for free on GitHub Pages. A German version of this guide is in `README.de.md`.
+A hub for mods and plugins for [NeoLegacy](https://git.neolegacy.dev/neoStudiosLCE/neoLegacy). The site is plain HTML, CSS and JavaScript and runs for free on GitHub Pages. A German version of this guide is in `README.de.md`.
 
-Owner: [@Loliflo](https://github.com/Loliflo)
+Owner: [@Loliflo](https://github.com/loliflo22)
 
 ## Put it on GitHub
 
@@ -10,8 +10,8 @@ Owner: [@Loliflo](https://github.com/Loliflo)
 2. **Upload the files:** Unzip the download. In the new repository click **uploading an existing file** and drag in the **contents** of the folder. The hidden folder `.github` and the file `.nojekyll` must be included. Then click **Commit changes**.
    - With Git: `git init`, `git add .`, `git commit -m "NeoMods"`, `git branch -M main`, `git remote add origin <your-repo-url>`, `git push -u origin main`.
 3. **Turn on Pages:** Go to **Settings → Pages** and choose **GitHub Actions** as the **Source**.
-4. **Wait:** Under **Actions** the workflow "Publish NeoMods" runs. After a minute or two the address appears under Settings → Pages, usually `https://YOUR-NAME.github.io/neomods/`.
-5. **Enter your repo name:** Open `config.json` and replace `YOUR-NAME/neomods` next to `"repo"` with your real name. Only then does the "Submit as GitHub issue" button work.
+4. **Wait:** Under **Actions** the workflow "Publish NeoMods" runs. After a minute or two the address appears under Settings → Pages, for you `https://loliflo22.github.io/NeoMods/`.
+5. **Repo name:** `config.json` already points to `loliflo22/NeoMods`. If you rename the repository, change `"repo"` there, otherwise the "Submit as GitHub issue" button opens the wrong page.
 6. **Remove the examples:** Delete the three folders `mods/example-…` once you have real entries.
 
 ## Languages

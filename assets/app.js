@@ -6,6 +6,10 @@
 
   /* ---------- Language ---------- */
   const I18N = window.NEOMODS_I18N;
+  if (!I18N) {
+    app.innerHTML = '<p class="notice">assets/i18n.js is missing or outdated. Upload all files from the ZIP, including the assets folder, then reload with Ctrl+Shift+R.</p>';
+    return;
+  }
   const LANG_KEY = 'neomods-lang';
   let lang = I18N.defaultLang; // English unless the visitor picked another language
 

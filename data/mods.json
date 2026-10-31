@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-31T13:38:33.675Z",
+  "generated": "2026-10-31T13:46:00.833Z",
   "mods": [
     {
       "slug": "example-welcome-plugin",
@@ -75,7 +75,7 @@
         "1.1.0"
       ],
       "links": {
-        "source": "https://github.com/pieeebot/neoLegacy"
+        "source": "https://git.neolegacy.dev/neoStudiosLCE/neoLegacy"
       },
       "updated": "2026-10-28"
     },

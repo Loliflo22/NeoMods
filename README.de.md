@@ -1,6 +1,6 @@
 # NeoMods
 
-Ein Hub für Mods und Plugins für [NeoLegacy](https://github.com/pieeebot/neoLegacy). Die Seite besteht nur aus HTML, CSS und JavaScript und läuft kostenlos auf GitHub Pages.
+Ein Hub für Mods und Plugins für [NeoLegacy](https://git.neolegacy.dev/neoStudiosLCE/neoLegacy). Die Seite besteht nur aus HTML, CSS und JavaScript und läuft kostenlos auf GitHub Pages.
 
 ## Auf GitHub bringen
 
