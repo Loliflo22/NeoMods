@@ -1,42 +1,54 @@
 # NeoMods
 
-Ein Hub für Mods und Plugins für [NeoLegacy](https://github.com/pieeebot/neoLegacy). Die Seite besteht nur aus HTML, CSS und JavaScript und läuft kostenlos auf GitHub Pages.
+A hub for mods and plugins for [NeoLegacy](https://github.com/pieeebot/neoLegacy). The site is plain HTML, CSS and JavaScript and runs for free on GitHub Pages. A German version of this guide is in `README.de.md`.
 
-## Auf GitHub bringen
+Owner: [@Loliflo](https://github.com/Loliflo)
 
-1. **Repository anlegen:** Auf github.com oben rechts auf **+ → New repository**. Name zum Beispiel `neomods`, auf **Public** stellen. Keine README anlegen lassen.
-2. **Dateien hochladen:** Entpacke das ZIP. Im neuen Repository auf **uploading an existing file** klicken und den **Inhalt** des Ordners hineinziehen. Wichtig: auch die versteckten Ordner `.github` und die Datei `.nojekyll` müssen mit. Dann **Commit changes**.
-   - Wenn du Git benutzt: `git init`, `git add .`, `git commit -m "NeoMods"`, `git branch -M main`, `git remote add origin <deine-repo-url>`, `git push -u origin main`.
-3. **Pages einschalten:** Im Repository auf **Settings → Pages**. Bei **Source** die Option **GitHub Actions** wählen.
-4. **Warten:** Unter **Actions** läuft jetzt „NeoMods veröffentlichen“. Nach ein bis zwei Minuten steht die Adresse unter Settings → Pages, meistens `https://DEIN-NAME.github.io/neomods/`.
-5. **Repo-Namen eintragen:** Öffne `config.json` und ersetze bei `"repo"` den Wert `DEIN-NAME/neomods` durch deinen echten Namen. Erst dann funktioniert der Button „Als GitHub-Issue einreichen“.
-6. **Beispiele löschen:** Entferne die drei Ordner `mods/beispiel-…`, sobald du echte Einträge hast.
+## Put it on GitHub
 
-## Lokal ansehen
+1. **Create a repository:** On github.com click **+ → New repository**. Name it for example `neomods` and set it to **Public**. Don't let GitHub add a README.
+2. **Upload the files:** Unzip the download. In the new repository click **uploading an existing file** and drag in the **contents** of the folder. The hidden folder `.github` and the file `.nojekyll` must be included. Then click **Commit changes**.
+   - With Git: `git init`, `git add .`, `git commit -m "NeoMods"`, `git branch -M main`, `git remote add origin <your-repo-url>`, `git push -u origin main`.
+3. **Turn on Pages:** Go to **Settings → Pages** and choose **GitHub Actions** as the **Source**.
+4. **Wait:** Under **Actions** the workflow "Publish NeoMods" runs. After a minute or two the address appears under Settings → Pages, usually `https://YOUR-NAME.github.io/neomods/`.
+5. **Enter your repo name:** Open `config.json` and replace `YOUR-NAME/neomods` next to `"repo"` with your real name. Only then does the "Submit as GitHub issue" button work.
+6. **Remove the examples:** Delete the three folders `mods/example-…` once you have real entries.
+
+## Languages
+
+English is the default. Visitors can switch the language in the top right (English, Deutsch, Español, Français, Português, Italiano) and the site remembers their choice.
+
+All texts are in `assets/i18n.js`. To add a language, add an entry to `languages` and a block with the same code under `strings`. Keys you leave out fall back to English. Category names in `mod.json` stay in English, only their display is translated.
+
+## Owner link
+
+The footer shows your name and link. Change it in `config.json` under `owner`.
+
+## View it locally
 
 ```
 node scripts/build-index.mjs
 python3 -m http.server
 ```
 
-Dann `http://localhost:8000` öffnen. Die Seite funktioniert nicht, wenn du `index.html` einfach per Doppelklick öffnest, weil der Browser dann die Daten nicht laden darf.
+Then open `http://localhost:8000`. The site does not work if you just double-click `index.html`, because the browser blocks loading the data that way.
 
-## Einen Mod hinzufügen
+## Add a mod
 
-Lege einen Ordner `mods/mein-mod/` an (nur Kleinbuchstaben, Zahlen und Bindestriche) mit diesen Dateien:
+Create a folder `mods/my-mod/` (lowercase letters, numbers and hyphens only) with these files:
 
-- `mod.json` mit den Angaben
-- `icon.png` (quadratisch, am besten 128×128)
-- Screenshots, zum Beispiel `screenshot1.png`
-- Optional die Mod-Datei selbst. Besser ist ein Link auf ein GitHub-Release.
+- `mod.json` with the details
+- `icon.png` (square, ideally 128×128)
+- Screenshots, for example `screenshot1.png`
+- Optionally the mod file itself. A link to a GitHub release is better.
 
 ```json
 {
-  "name": "Mein Mod",
+  "name": "My Mod",
   "type": "mod",
-  "summary": "Ein Satz, was der Mod macht.",
-  "description": "Längerer Text.\n\nListen gehen so:\n- Punkt eins\n- Punkt zwei",
-  "author": "DeinName",
+  "summary": "One sentence about what the mod does.",
+  "description": "Longer text.\n\nLists work like this:\n- Point one\n- Point two",
+  "author": "YourName",
   "categories": ["Gameplay"],
   "icon": "icon.png",
   "screenshots": ["screenshot1.png"],
@@ -44,29 +56,31 @@ Lege einen Ordner `mods/mein-mod/` an (nur Kleinbuchstaben, Zahlen und Bindestri
     {
       "version": "1.0.0",
       "neolegacy": ["1.1.2", "1.1.1"],
-      "file": "https://github.com/DeinName/mein-mod/releases/download/v1.0.0/mein-mod.zip",
+      "file": "https://github.com/YourName/my-mod/releases/download/v1.0.0/my-mod.zip",
       "date": "2026-10-31",
-      "changelog": "Erste Version."
+      "changelog": "First release."
     }
   ],
-  "links": { "source": "https://github.com/DeinName/mein-mod" }
+  "links": { "source": "https://github.com/YourName/my-mod" }
 }
 ```
 
-`type` ist `mod` oder `plugin`. Nach dem Speichern prüft und veröffentlicht die GitHub Action alles automatisch. Bei einem Pull Request meldet sie Fehler direkt im PR.
+`type` is `mod` or `plugin`. After you save, the GitHub Action checks and publishes everything automatically. On a pull request it reports errors right in the PR.
 
-## Versionen und Kategorien ändern
+## Change versions and categories
 
-Alles steht in `config.json`. Die Liste `versions` gehört von neu nach alt: die erste Version wird als „neueste“ angezeigt. Ich habe `1.1.2` als neueste eingetragen und die darunter nur als Platzhalter. Passe sie an die echten NeoLegacy-Versionen an. Eine neue Version trägst du ganz oben ein.
+Everything is in `config.json`. List `versions` from newest to oldest: the first one is shown as "latest". `1.1.2` is set as the newest, the ones below are only placeholders. Change them to the real NeoLegacy versions. Add a new version at the very top.
 
-## So kommen Einreichungen von anderen an
+Categories are in English in `config.json` and `mod.json`. If you add one, also add its translations under `cats` in `assets/i18n.js`.
 
-1. Jemand füllt auf der Seite das Formular aus und schickt es als GitHub-Issue ab.
-2. Du schaust den Eintrag an, besonders den Download-Link und die Bilder.
-3. Du legst den Ordner `mods/…` mit der `mod.json` aus dem Issue an und lädst Icon und Screenshots dazu.
+## How submissions from others arrive
 
-Das ist bewusst von Hand: So landet nichts Ungeprüftes auf der Seite. Die Downloads liegen bei den Autoren, die Seite verlinkt sie nur.
+1. Someone fills in the form on the site and sends it as a GitHub issue.
+2. You review the entry, especially the download link and the images.
+3. You create the `mods/…` folder with the `mod.json` from the issue and add the icon and screenshots.
 
-## Später ausbauen
+This is manual on purpose: nothing unchecked ends up on the site. Downloads stay with the authors, the site only links to them.
 
-Echte Uploads mit Login, Download-Zähler oder Bewertungen brauchen ein Backend, zum Beispiel Supabase. Die Seite kann dabei statisch bleiben.
+## Later
+
+Real uploads with login, download counters or ratings need a backend, for example Supabase. The site can stay static and just talk to it.

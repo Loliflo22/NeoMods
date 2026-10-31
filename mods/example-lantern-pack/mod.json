@@ -1,0 +1,29 @@
+{
+  "name": "Example: Lantern Pack",
+  "type": "mod",
+  "summary": "New lanterns in many colors for cozy caves and villages.",
+  "description": "This is an example entry for an older mod that only works with 1.1.0 and 1.0.0.",
+  "author": "OtherExampleAuthor",
+  "categories": [
+    "Graphics & Textures",
+    "World & Biomes"
+  ],
+  "icon": "icon.svg",
+  "screenshots": [
+    "screenshot1.svg",
+    "screenshot2.svg",
+    "screenshot3.svg"
+  ],
+  "versions": [
+    {
+      "version": "2.0.0",
+      "neolegacy": [
+        "1.1.0",
+        "1.0.0"
+      ],
+      "file": "example-download.txt",
+      "date": "2026-08-02",
+      "changelog": "Twelve new colors."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Example: Gem Tools",
+  "type": "mod",
+  "summary": "New tools made from gems that mine faster and last longer.",
+  "description": "This is an example entry. Delete the folder when you add your own mods.\n\nWhat the mod adds:\n- Five new gem tools\n- New crafting recipes\n- Console-style textures\n\nInstallation:\nUnpack the file into the NeoLegacy mods folder and restart the game.",
+  "author": "ExampleAuthor",
+  "categories": [
+    "Items & Tools",
+    "Gameplay"
+  ],
+  "icon": "icon.svg",
+  "screenshots": [
+    "screenshot1.svg",
+    "screenshot2.svg"
+  ],
+  "versions": [
+    {
+      "version": "1.2.0",
+      "neolegacy": [
+        "1.1.2",
+        "1.1.1"
+      ],
+      "file": "example-download.txt",
+      "date": "2026-10-28",
+      "changelog": "Added an axe and better durability."
+    },
+    {
+      "version": "1.0.0",
+      "neolegacy": [
+        "1.1.0"
+      ],
+      "file": "example-download.txt",
+      "date": "2026-09-14",
+      "changelog": "First release."
+    }
+  ],
+  "links": {
+    "source": "https://github.com/pieeebot/neoLegacy"
+  }
+}

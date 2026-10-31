@@ -1,4 +1,4 @@
-name: NeoMods veröffentlichen
+name: Publish NeoMods
 
 on:
   push:
@@ -25,12 +25,12 @@ jobs:
         with:
           node-version: 22
 
-      # Prüft alle mod.json-Dateien und erzeugt data/mods.json.
-      # Bei Pull Requests schlägt dieser Schritt fehl, wenn ein Eintrag fehlerhaft ist.
-      - name: Mods prüfen und Index bauen
+      # Checks all mod.json files and builds data/mods.json.
+      # On pull requests this step fails if an entry is invalid.
+      - name: Check mods and build index
         run: node scripts/build-index.mjs
 
-      - name: Seite zusammenstellen
+      - name: Assemble site
         if: github.event_name != 'pull_request'
         run: |
           mkdir _site

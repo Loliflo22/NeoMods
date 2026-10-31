@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NeoMods – Mods und Plugins für NeoLegacy</title>
-  <meta name="description" content="Der Hub für Mods und Plugins für NeoLegacy. Suchen, nach Version filtern und herunterladen.">
+  <title>NeoMods – Mods and plugins for NeoLegacy</title>
+  <meta name="description" content="The hub for mods and plugins for NeoLegacy. Search, filter by version and download.">
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,39 +12,44 @@
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <a class="skip" href="#app">Zum Inhalt springen</a>
+  <a class="skip" href="#app" data-i18n="skip">Skip to content</a>
 
   <header class="top">
     <div class="wrap top-in">
-      <a class="brand" href="#/" aria-label="NeoMods, Startseite">
+      <a class="brand" href="#/" data-i18n-aria="brand.aria" aria-label="NeoMods, home">
         <img src="assets/logo.svg" alt="" width="36" height="36">
         <span>NeoMods</span>
       </a>
-      <nav class="nav" aria-label="Hauptmenü">
-        <a href="#/" data-nav="home">Entdecken</a>
-        <a href="#/einreichen" data-nav="submit">Einreichen</a>
-        <a href="https://github.com/pieeebot/neoLegacy" target="_blank" rel="noopener noreferrer" id="projectLink">NeoLegacy</a>
-      </nav>
+      <div class="top-right">
+        <nav class="nav" data-i18n-aria="nav.aria" aria-label="Main menu">
+          <a href="#/" data-nav="home" data-i18n="nav.discover">Discover</a>
+          <a href="#/einreichen" data-nav="submit" data-i18n="nav.submit">Submit</a>
+          <a href="https://github.com/pieeebot/neoLegacy" target="_blank" rel="noopener noreferrer" id="projectLink" data-i18n="nav.project">NeoLegacy</a>
+        </nav>
+        <select id="langSelect" class="lang" data-i18n-aria="lang.label" aria-label="Language"></select>
+      </div>
     </div>
   </header>
 
   <main id="app" class="wrap" tabindex="-1">
-    <noscript><p class="notice">NeoMods braucht JavaScript, um die Mods anzuzeigen.</p></noscript>
-    <p class="notice">Lade Mods …</p>
+    <noscript><p class="notice">NeoMods needs JavaScript to show the mods.</p></noscript>
+    <p class="notice" data-i18n="loading">Loading mods …</p>
   </main>
 
   <footer class="foot">
     <div class="wrap">
-      <p>NeoMods ist ein Community-Projekt und nicht mit Mojang, Microsoft oder dem NeoLegacy-Team verbunden.</p>
-      <p>Downloads stammen von den jeweiligen Autoren. Prüfe Dateien, bevor du sie installierst.</p>
+      <p data-i18n="footer.disclaimer1">NeoMods is a community project and is not affiliated with Mojang, Microsoft or the NeoLegacy team.</p>
+      <p data-i18n="footer.disclaimer2">Downloads come from their authors. Check files before you install them.</p>
+      <p class="owner"><span data-i18n="footer.owner">Owner</span>: <a id="ownerLink" href="https://github.com/Loliflo" target="_blank" rel="noopener noreferrer">@Loliflo</a></p>
     </div>
   </footer>
 
-  <dialog id="lightbox" aria-label="Bildansicht">
-    <button class="lb-close" type="button" aria-label="Schließen">Schließen</button>
+  <dialog id="lightbox" data-i18n-aria="lightbox.aria" aria-label="Image view">
+    <button class="lb-close" type="button" data-i18n="close">Close</button>
     <img alt="">
   </dialog>
 
+  <script src="assets/i18n.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

@@ -1,19 +1,19 @@
 {
-  "generated": "2026-10-31T13:11:20.710Z",
+  "generated": "2026-10-31T13:38:33.675Z",
   "mods": [
     {
-      "slug": "beispiel-willkommen-plugin",
-      "name": "Beispiel: Willkommens-Plugin",
+      "slug": "example-welcome-plugin",
+      "name": "Example: Welcome Plugin",
       "type": "plugin",
-      "summary": "Zeigt neuen Spielern auf deinem Server eine Willkommensnachricht.",
-      "description": "Dies ist ein Beispiel-Eintrag für ein Server-Plugin.\n\nEinstellungen:\n- Nachricht frei wählbar\n- Anzeige nur beim ersten Beitritt möglich",
-      "author": "BeispielAutor",
+      "summary": "Shows new players on your server a welcome message.",
+      "description": "This is an example entry for a server plugin.\n\nSettings:\n- Freely chosen message\n- Can be shown on first join only",
+      "author": "ExampleAuthor",
       "categories": [
-        "Server & Verwaltung"
+        "Server & Admin"
       ],
-      "icon": "mods/beispiel-willkommen-plugin/icon.svg",
+      "icon": "mods/example-welcome-plugin/icon.svg",
       "screenshots": [
-        "mods/beispiel-willkommen-plugin/screenshot1.svg"
+        "mods/example-welcome-plugin/screenshot1.svg"
       ],
       "versions": [
         {
@@ -21,9 +21,9 @@
           "neolegacy": [
             "1.1.2"
           ],
-          "file": "mods/beispiel-willkommen-plugin/beispiel-download.txt",
+          "file": "mods/example-welcome-plugin/example-download.txt",
           "date": "2026-10-30",
-          "changelog": "Nachricht lässt sich jetzt in der Konfiguration ändern."
+          "changelog": "The message can now be changed in the configuration."
         }
       ],
       "neolegacy": [
@@ -33,20 +33,20 @@
       "updated": "2026-10-30"
     },
     {
-      "slug": "beispiel-edelstein-werkzeuge",
-      "name": "Beispiel: Edelstein-Werkzeuge",
+      "slug": "example-gem-tools",
+      "name": "Example: Gem Tools",
       "type": "mod",
-      "summary": "Neue Werkzeuge aus Edelsteinen, die schneller abbauen und länger halten.",
-      "description": "Dies ist ein Beispiel-Eintrag. Lösche den Ordner, wenn du eigene Mods hinzufügst.\n\nWas der Mod bietet:\n- Fünf neue Edelstein-Werkzeuge\n- Neue Rezepte an der Werkbank\n- Eigene Texturen im Konsolen-Stil\n\nInstallation:\nEntpacke die Datei in den Mods-Ordner von NeoLegacy und starte das Spiel neu.",
-      "author": "BeispielAutor",
+      "summary": "New tools made from gems that mine faster and last longer.",
+      "description": "This is an example entry. Delete the folder when you add your own mods.\n\nWhat the mod adds:\n- Five new gem tools\n- New crafting recipes\n- Console-style textures\n\nInstallation:\nUnpack the file into the NeoLegacy mods folder and restart the game.",
+      "author": "ExampleAuthor",
       "categories": [
-        "Items & Werkzeuge",
+        "Items & Tools",
         "Gameplay"
       ],
-      "icon": "mods/beispiel-edelstein-werkzeuge/icon.svg",
+      "icon": "mods/example-gem-tools/icon.svg",
       "screenshots": [
-        "mods/beispiel-edelstein-werkzeuge/screenshot1.svg",
-        "mods/beispiel-edelstein-werkzeuge/screenshot2.svg"
+        "mods/example-gem-tools/screenshot1.svg",
+        "mods/example-gem-tools/screenshot2.svg"
       ],
       "versions": [
         {
@@ -55,18 +55,18 @@
             "1.1.2",
             "1.1.1"
           ],
-          "file": "mods/beispiel-edelstein-werkzeuge/beispiel-download.txt",
+          "file": "mods/example-gem-tools/example-download.txt",
           "date": "2026-10-28",
-          "changelog": "Neue Axt und bessere Haltbarkeit."
+          "changelog": "Added an axe and better durability."
         },
         {
           "version": "1.0.0",
           "neolegacy": [
             "1.1.0"
           ],
-          "file": "mods/beispiel-edelstein-werkzeuge/beispiel-download.txt",
+          "file": "mods/example-gem-tools/example-download.txt",
           "date": "2026-09-14",
-          "changelog": "Erste Version."
+          "changelog": "First release."
         }
       ],
       "neolegacy": [
@@ -80,21 +80,21 @@
       "updated": "2026-10-28"
     },
     {
-      "slug": "beispiel-laternen-pack",
-      "name": "Beispiel: Laternen-Pack",
+      "slug": "example-lantern-pack",
+      "name": "Example: Lantern Pack",
       "type": "mod",
-      "summary": "Neue Laternen in vielen Farben für gemütliche Höhlen und Dörfer.",
-      "description": "Dies ist ein Beispiel-Eintrag für einen älteren Mod, der nur mit 1.1.0 und 1.0.0 läuft.",
-      "author": "AndereBeispielAutorin",
+      "summary": "New lanterns in many colors for cozy caves and villages.",
+      "description": "This is an example entry for an older mod that only works with 1.1.0 and 1.0.0.",
+      "author": "OtherExampleAuthor",
       "categories": [
-        "Grafik & Texturen",
-        "Welt & Biome"
+        "Graphics & Textures",
+        "World & Biomes"
       ],
-      "icon": "mods/beispiel-laternen-pack/icon.svg",
+      "icon": "mods/example-lantern-pack/icon.svg",
       "screenshots": [
-        "mods/beispiel-laternen-pack/screenshot1.svg",
-        "mods/beispiel-laternen-pack/screenshot2.svg",
-        "mods/beispiel-laternen-pack/screenshot3.svg"
+        "mods/example-lantern-pack/screenshot1.svg",
+        "mods/example-lantern-pack/screenshot2.svg",
+        "mods/example-lantern-pack/screenshot3.svg"
       ],
       "versions": [
         {
@@ -103,9 +103,9 @@
             "1.1.0",
             "1.0.0"
           ],
-          "file": "mods/beispiel-laternen-pack/beispiel-download.txt",
+          "file": "mods/example-lantern-pack/example-download.txt",
           "date": "2026-08-02",
-          "changelog": "Zwölf neue Farben."
+          "changelog": "Twelve new colors."
         }
       ],
       "neolegacy": [

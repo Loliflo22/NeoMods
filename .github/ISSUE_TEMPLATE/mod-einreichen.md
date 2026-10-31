@@ -1,14 +1,14 @@
 ---
-name: Mod oder Plugin einreichen
-about: Reiche einen Mod oder ein Plugin für NeoMods ein
-title: "Einreichung: NAME"
+name: Submit a mod or plugin
+about: Submit a mod or plugin to NeoMods
+title: "Submission: NAME"
 ---
 
-Am einfachsten geht es über das Formular auf der Seite unter „Einreichen“. Es füllt dieses Issue automatisch aus.
+The easiest way is the form on the site under "Submit". It fills in this issue for you.
 
-Wenn du es hier von Hand machst, brauchst du:
+If you write it by hand, you need:
 
-- Name, Typ (Mod oder Plugin), Kurzbeschreibung, Beschreibung, Autor
-- Version deines Mods und die NeoLegacy-Versionen, mit denen er läuft
-- Download-Link
-- Icon (quadratisch, PNG) und Screenshots (einfach ins Issue ziehen)
+- Name, type (mod or plugin), short description, description, author
+- Your mod's version and the NeoLegacy versions it works with
+- Download link
+- Icon (square PNG) and screenshots (just drag them into the issue)

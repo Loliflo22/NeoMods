@@ -1,5 +1,5 @@
-// Liest alle mods/*/mod.json, prüft sie und schreibt data/mods.json.
-// Aufruf: node scripts/build-index.mjs
+// Reads all mods/*/mod.json files, validates them and writes data/mods.json.
+// Usage: node scripts/build-index.mjs
 import { readdir, readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -27,18 +27,18 @@ for (const dir of entries) {
   const file = path.join(folder, 'mod.json');
 
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
-    fail(slug, 'Ordnername nur mit a-z, 0-9 und Bindestrichen (z. B. mein-mod)');
+    fail(slug, 'folder name may only use a-z, 0-9 and hyphens (e.g. my-mod)');
     continue;
   }
-  if (!existsSync(file)) { fail(slug, 'mod.json fehlt'); continue; }
+  if (!existsSync(file)) { fail(slug, 'mod.json is missing'); continue; }
 
   let m;
   try { m = JSON.parse(await readFile(file, 'utf8')); }
-  catch (e) { fail(slug, `mod.json ist kein gültiges JSON (${e.message})`); continue; }
+  catch (e) { fail(slug, `mod.json is not valid JSON (${e.message})`); continue; }
 
   const str = (v, name, { max = 5000, required = true } = {}) => {
-    if (typeof v !== 'string' || !v.trim()) { if (required) fail(slug, `"${name}" fehlt`); return ''; }
-    if (v.length > max) fail(slug, `"${name}" ist zu lang (max. ${max} Zeichen)`);
+    if (typeof v !== 'string' || !v.trim()) { if (required) fail(slug, `"${name}" is missing`); return ''; }
+    if (v.length > max) fail(slug, `"${name}" is too long (max. ${max} characters)`);
     return v.trim();
   };
 
@@ -46,51 +46,51 @@ for (const dir of entries) {
   const summary = str(m.summary, 'summary', { max: 140 });
   const author = str(m.author, 'author', { max: 40 });
   const description = str(m.description, 'description', { max: 8000, required: false });
-  if (!['mod', 'plugin'].includes(m.type)) fail(slug, '"type" muss "mod" oder "plugin" sein');
+  if (!['mod', 'plugin'].includes(m.type)) fail(slug, '"type" must be "mod" or "plugin"');
 
   const categories = Array.isArray(m.categories) ? m.categories : [];
   for (const c of categories) {
-    if (!config.categories.includes(c)) fail(slug, `Kategorie "${c}" steht nicht in config.json`);
+    if (!config.categories.includes(c)) fail(slug, `category "${c}" is not listed in config.json`);
   }
 
-  // Dateien (lokal oder URL) auflösen
+  // Resolve files (local or URL)
   const resolveFile = (value, label, { image = false } = {}) => {
-    if (typeof value !== 'string' || !value.trim()) { fail(slug, `${label} fehlt`); return ''; }
+    if (typeof value !== 'string' || !value.trim()) { fail(slug, `${label} is missing`); return ''; }
     const v = value.trim();
     if (isHttp(v)) return v;
-    if (/^[a-z][a-z0-9+.-]*:/i.test(v)) { fail(slug, `${label}: nur http(s)-Links erlaubt`); return ''; }
-    if (!isSafeRelative(v)) { fail(slug, `${label}: ungültiger Dateiname "${v}"`); return ''; }
+    if (/^[a-z][a-z0-9+.-]*:/i.test(v)) { fail(slug, `${label}: only http(s) links are allowed`); return ''; }
+    if (!isSafeRelative(v)) { fail(slug, `${label}: invalid file name "${v}"`); return ''; }
     const full = path.join(folder, v);
-    if (!existsSync(full)) { fail(slug, `${label}: Datei "${v}" liegt nicht im Ordner`); return ''; }
+    if (!existsSync(full)) { fail(slug, `${label}: file "${v}" is not in the folder`); return ''; }
     return `mods/${slug}/${encodeURI(v)}`;
   };
 
   const icon = resolveFile(m.icon, 'icon', { image: true });
   const screenshots = (Array.isArray(m.screenshots) ? m.screenshots : [])
     .map((s, i) => resolveFile(s, `screenshots[${i}]`, { image: true })).filter(Boolean);
-  if (screenshots.length > 8) warn(slug, 'mehr als 8 Screenshots, nur die ersten 8 werden gezeigt');
+  if (screenshots.length > 8) warn(slug, 'more than 8 screenshots, only the first 8 are shown');
 
   for (const rel of [m.icon, ...(m.screenshots || [])]) {
     if (typeof rel === 'string' && !isHttp(rel) && isSafeRelative(rel) && existsSync(path.join(folder, rel))) {
       const size = (await stat(path.join(folder, rel))).size;
-      if (size > MAX_IMAGE) warn(slug, `"${rel}" ist größer als 1 MB, bitte verkleinern`);
+      if (size > MAX_IMAGE) warn(slug, `"${rel}" is larger than 1 MB, please make it smaller`);
     }
   }
 
-  // Versionen
-  if (!Array.isArray(m.versions) || !m.versions.length) { fail(slug, '"versions" braucht mindestens einen Eintrag'); continue; }
+  // Versions
+  if (!Array.isArray(m.versions) || !m.versions.length) { fail(slug, '"versions" needs at least one entry'); continue; }
   const versions = [];
   m.versions.forEach((v, i) => {
     const label = `versions[${i}]`;
     const version = str(v.version, `${label}.version`, { max: 20 });
     const compat = Array.isArray(v.neolegacy) ? v.neolegacy : [];
-    if (!compat.length) fail(slug, `${label}.neolegacy braucht mindestens eine NeoLegacy-Version`);
+    if (!compat.length) fail(slug, `${label}.neolegacy needs at least one NeoLegacy version`);
     for (const c of compat) {
-      if (!config.versions.includes(c)) fail(slug, `${label}: NeoLegacy-Version "${c}" steht nicht in config.json`);
+      if (!config.versions.includes(c)) fail(slug, `${label}: NeoLegacy version "${c}" is not listed in config.json`);
     }
     const dl = resolveFile(v.file, `${label}.file`);
     const date = typeof v.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.date) ? v.date : '';
-    if (!date) fail(slug, `${label}.date muss im Format JJJJ-MM-TT sein`);
+    if (!date) fail(slug, `${label}.date must use the format YYYY-MM-DD`);
     versions.push({
       version,
       neolegacy: [...compat].sort((a, b) => config.versions.indexOf(a) - config.versions.indexOf(b)),
@@ -99,7 +99,7 @@ for (const dir of entries) {
       changelog: typeof v.changelog === 'string' ? v.changelog.trim().slice(0, 300) : '',
     });
   });
-  // Neueste Version zuerst (nach Datum, bei Gleichstand Reihenfolge in der Datei)
+  // Newest version first (by date, ties keep the order from the file)
   versions.sort((a, b) => b.date.localeCompare(a.date));
 
   const links = {};
@@ -107,7 +107,7 @@ for (const dir of entries) {
     const v = m.links?.[k];
     if (v === undefined || v === '') continue;
     if (typeof v === 'string' && isHttp(v)) links[k] = v;
-    else fail(slug, `links.${k} muss ein http(s)-Link sein`);
+    else fail(slug, `links.${k} must be an http(s) link`);
   }
 
   const neolegacy = [...new Set(versions.flatMap((v) => v.neolegacy))]
@@ -123,14 +123,14 @@ for (const dir of entries) {
 const names = new Map();
 for (const m of mods) {
   const key = m.name.toLowerCase();
-  if (names.has(key)) errors.push(`Der Name "${m.name}" wird in mods/${names.get(key)} und mods/${m.slug} verwendet`);
+  if (names.has(key)) errors.push(`The name "${m.name}" is used in both mods/${names.get(key)} and mods/${m.slug}`);
   names.set(key, m.slug);
 }
 
-warnings.forEach((w) => console.warn('Warnung:', w));
+warnings.forEach((w) => console.warn('Warning:', w));
 
 if (errors.length) {
-  console.error(`\n${errors.length} Fehler gefunden:\n`);
+  console.error(`\n${errors.length} error(s) found:\n`);
   errors.forEach((e) => console.error('  -', e));
   process.exit(1);
 }
@@ -141,4 +141,4 @@ await writeFile(
   path.join(root, 'data', 'mods.json'),
   JSON.stringify({ generated: new Date().toISOString(), mods }, null, 2) + '\n',
 );
-console.log(`${mods.length} Einträge nach data/mods.json geschrieben.`);
+console.log(`${mods.length} entries written to data/mods.json.`);

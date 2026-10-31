@@ -1,0 +1,25 @@
+{
+  "name": "Example: Welcome Plugin",
+  "type": "plugin",
+  "summary": "Shows new players on your server a welcome message.",
+  "description": "This is an example entry for a server plugin.\n\nSettings:\n- Freely chosen message\n- Can be shown on first join only",
+  "author": "ExampleAuthor",
+  "categories": [
+    "Server & Admin"
+  ],
+  "icon": "icon.svg",
+  "screenshots": [
+    "screenshot1.svg"
+  ],
+  "versions": [
+    {
+      "version": "0.9.0",
+      "neolegacy": [
+        "1.1.2"
+      ],
+      "file": "example-download.txt",
+      "date": "2026-10-30",
+      "changelog": "The message can now be changed in the configuration."
+    }
+  ]
+}

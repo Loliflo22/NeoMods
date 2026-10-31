@@ -4,12 +4,78 @@
   const app = document.getElementById('app');
   const state = { config: null, mods: [], filters: { q: '', v: '', t: '', c: '', s: 'new' } };
 
-  /* ---------- Helfer ---------- */
+  /* ---------- Language ---------- */
+  const I18N = window.NEOMODS_I18N;
+  const LANG_KEY = 'neomods-lang';
+  let lang = I18N.defaultLang; // English unless the visitor picked another language
+
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved && I18N.strings[saved]) lang = saved;
+  } catch { /* storage can be blocked, English stays */ }
+
+  const t = (key, vars) => {
+    let s = (I18N.strings[lang] || {})[key];
+    if (typeof s !== 'string') s = I18N.strings[I18N.defaultLang][key];
+    if (typeof s !== 'string') s = key;
+    return vars ? s.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : '')) : s;
+  };
+
+  // Category names are stored in English in mod.json. Only the display is translated.
+  const catName = (c) => (I18N.strings[lang].cats || {})[c] || I18N.strings[I18N.defaultLang].cats[c] || c;
+
+  const applyStatic = () => {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+    const noscript = document.querySelector('noscript');
+    if (noscript) noscript.textContent = t('noscript');
+  };
+
+  const setupLangSelect = () => {
+    const sel = document.getElementById('langSelect');
+    sel.innerHTML = I18N.languages.map((l) => `<option value="${l.code}" lang="${l.code}">${l.name}</option>`).join('');
+    sel.value = lang;
+    sel.addEventListener('change', () => setLang(sel.value));
+  };
+
+  let draft = null; // keeps typed form values when the language changes
+  const snapshotForm = () => {
+    draft = null;
+    const f = document.getElementById('form');
+    if (!f) return;
+    draft = {};
+    f.querySelectorAll('input, select, textarea').forEach((el) => {
+      if (el.type === 'checkbox') {
+        draft[el.name] = draft[el.name] || [];
+        if (el.checked) draft[el.name].push(el.value);
+      } else draft[el.name] = el.value;
+    });
+  };
+  const restoreForm = (f) => {
+    if (!draft) return;
+    f.querySelectorAll('input, select, textarea').forEach((el) => {
+      if (el.type === 'checkbox') el.checked = (draft[el.name] || []).includes(el.value);
+      else if (el.name in draft) el.value = draft[el.name];
+    });
+    draft = null;
+  };
+
+  const setLang = (code) => {
+    if (!I18N.strings[code]) return;
+    lang = code;
+    try { localStorage.setItem(LANG_KEY, code); } catch { /* ignore */ }
+    snapshotForm();
+    applyStatic();
+    if (state.config) route(true);
+  };
+
+  /* ---------- Helpers ---------- */
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
   ));
 
-  // Nur http(s)-Links und relative Pfade zulassen (blockt z. B. javascript:)
+  // Only allow http(s) links and relative paths (blocks e.g. javascript:)
   const safeUrl = (u) => {
     const s = String(u ?? '').trim();
     if (!s) return '#';
@@ -17,11 +83,11 @@
     return s;
   };
 
-  const typeLabel = (t) => (t === 'plugin' ? 'Plugin' : 'Mod');
+  const typeLabel = (type) => t(type === 'plugin' ? 'badge.plugin' : 'badge.mod');
 
   const fmtDate = (d) => {
     const dt = new Date(d);
-    return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' });
+    return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -32,7 +98,7 @@
     return r.json();
   };
 
-  // Einfache Textdarstellung: Absätze und "- "-Listen
+  // Simple text rendering: paragraphs and "- " lists
   const prose = (text) => {
     const blocks = String(text ?? '').replace(/\r/g, '').split(/\n{2,}/);
     return blocks.map((b) => {
@@ -66,18 +132,18 @@
     });
   };
 
-  const route = () => {
+  const route = (keepScroll = false) => {
     const { parts, params } = parseHash();
     if (parts[0] === 'mod' && parts[1]) viewDetail(decodeURIComponent(parts[1]));
     else if (parts[0] === 'einreichen') viewSubmit();
     else viewHome(params);
-    if (!(parts.length === 0 && location.hash.includes('?'))) window.scrollTo(0, 0);
+    if (!keepScroll && !(parts.length === 0 && location.hash.includes('?'))) window.scrollTo(0, 0);
   };
 
-  /* ---------- Startseite ---------- */
+  /* ---------- Home ---------- */
   const viewHome = (params) => {
     setNav('home');
-    document.title = 'NeoMods – Mods und Plugins für NeoLegacy';
+    document.title = t('title.home');
     const { config } = state;
     const f = state.filters = {
       q: params.get('q') || '',
@@ -90,37 +156,37 @@
 
     app.innerHTML = `
       <section class="hero">
-        <h1>Mods und Plugins für NeoLegacy</h1>
-        <p class="lead">Suche nach Mods, filtere nach deiner NeoLegacy-Version und lade sie direkt herunter.</p>
+        <h1>${esc(t('hero.h1'))}</h1>
+        <p class="lead">${esc(t('hero.lead'))}</p>
         <div class="search" role="search">
-          <input type="search" id="q" placeholder="Mod oder Plugin suchen" aria-label="Mods und Plugins durchsuchen" value="${esc(f.q)}" autocomplete="off">
+          <input type="search" id="q" placeholder="${esc(t('search.placeholder'))}" aria-label="${esc(t('search.aria'))}" value="${esc(f.q)}" autocomplete="off">
         </div>
-        <p class="slots-label" id="slotsLabel">Deine NeoLegacy-Version</p>
+        <p class="slots-label" id="slotsLabel">${esc(t('version.label'))}</p>
         <div class="slots" role="group" aria-labelledby="slotsLabel" id="slots">
-          <button class="slot" type="button" data-v="" aria-pressed="${f.v === ''}">Alle<small>Versionen</small></button>
+          <button class="slot" type="button" data-v="" aria-pressed="${f.v === ''}">${esc(t('version.all'))}<small>${esc(t('version.all.sub'))}</small></button>
           ${config.versions.map((v) => `
-            <button class="slot" type="button" data-v="${esc(v)}" aria-pressed="${f.v === v}">${esc(v)}<small>${v === latest ? 'neueste' : 'Version'}</small></button>`).join('')}
+            <button class="slot" type="button" data-v="${esc(v)}" aria-pressed="${f.v === v}">${esc(v)}<small>${esc(t(v === latest ? 'version.latest' : 'version.plain'))}</small></button>`).join('')}
         </div>
       </section>
 
       <div class="bar">
-        <div class="seg" role="group" aria-label="Typ" id="types">
-          <button type="button" data-t="" aria-pressed="${f.t === ''}">Alle</button>
-          <button type="button" data-t="mod" aria-pressed="${f.t === 'mod'}">Mods</button>
-          <button type="button" data-t="plugin" aria-pressed="${f.t === 'plugin'}">Plugins</button>
+        <div class="seg" role="group" aria-label="${esc(t('type.aria'))}" id="types">
+          <button type="button" data-t="" aria-pressed="${f.t === ''}">${esc(t('type.all'))}</button>
+          <button type="button" data-t="mod" aria-pressed="${f.t === 'mod'}">${esc(t('type.mods'))}</button>
+          <button type="button" data-t="plugin" aria-pressed="${f.t === 'plugin'}">${esc(t('type.plugins'))}</button>
         </div>
         <div class="selects">
-          <label class="field">Kategorie
+          <label class="field">${esc(t('cat.label'))}
             <select id="cat">
-              <option value="">Alle Kategorien</option>
-              ${config.categories.map((c) => `<option value="${esc(c)}"${f.c === c ? ' selected' : ''}>${esc(c)}</option>`).join('')}
+              <option value="">${esc(t('cat.all'))}</option>
+              ${config.categories.map((c) => `<option value="${esc(c)}"${f.c === c ? ' selected' : ''}>${esc(catName(c))}</option>`).join('')}
             </select>
           </label>
-          <label class="field">Sortieren
+          <label class="field">${esc(t('sort.label'))}
             <select id="sort">
-              <option value="new"${f.s === 'new' ? ' selected' : ''}>Zuletzt aktualisiert</option>
-              <option value="name"${f.s === 'name' ? ' selected' : ''}>Name (A–Z)</option>
-              <option value="ver"${f.s === 'ver' ? ' selected' : ''}>Neueste Version zuerst</option>
+              <option value="new"${f.s === 'new' ? ' selected' : ''}>${esc(t('sort.new'))}</option>
+              <option value="name"${f.s === 'name' ? ' selected' : ''}>${esc(t('sort.name'))}</option>
+              <option value="ver"${f.s === 'ver' ? ' selected' : ''}>${esc(t('sort.ver'))}</option>
             </select>
           </label>
         </div>
@@ -162,15 +228,15 @@
   };
 
   const filtered = () => {
-    const { q, v, t, c, s } = state.filters;
+    const { q, v, t: type, c, s } = state.filters;
     const { versions } = state.config;
     const terms = norm(q).split(/\s+/).filter(Boolean);
-    let list = state.mods.filter((m) => {
-      if (t && m.type !== t) return false;
+    const list = state.mods.filter((m) => {
+      if (type && m.type !== type) return false;
       if (v && !m.neolegacy.includes(v)) return false;
       if (c && !(m.categories || []).includes(c)) return false;
       if (terms.length) {
-        const hay = norm([m.name, m.author, m.summary, (m.categories || []).join(' ')].join(' '));
+        const hay = norm([m.name, m.author, m.summary, (m.categories || []).map(catName).join(' ')].join(' '));
         if (!terms.every((x) => hay.includes(x))) return false;
       }
       return true;
@@ -179,9 +245,10 @@
       const idx = m.neolegacy.map((x) => versions.indexOf(x)).filter((i) => i >= 0);
       return idx.length ? Math.min(...idx) : 999;
     };
-    if (s === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-    else if (s === 'ver') list.sort((a, b) => verRank(a) - verRank(b) || a.name.localeCompare(b.name, 'de'));
-    else list.sort((a, b) => String(b.updated).localeCompare(String(a.updated)) || a.name.localeCompare(b.name, 'de'));
+    const byName = (a, b) => a.name.localeCompare(b.name, lang);
+    if (s === 'name') list.sort(byName);
+    else if (s === 'ver') list.sort((a, b) => verRank(a) - verRank(b) || byName(a, b));
+    else list.sort((a, b) => String(b.updated).localeCompare(String(a.updated)) || byName(a, b));
     return list;
   };
 
@@ -190,10 +257,10 @@
       <img class="icon" src="${esc(safeUrl(m.icon))}" alt="" width="64" height="64" loading="lazy">
       <div class="card-body">
         <h3>${esc(m.name)}</h3>
-        <p class="by">von ${esc(m.author)}</p>
+        <p class="by">${esc(t('by', { author: m.author }))}</p>
         <p class="sum">${esc(m.summary)}</p>
         <div class="tags">
-          <span class="badge ${esc(m.type)}">${typeLabel(m.type)}</span>
+          <span class="badge ${esc(m.type)}">${esc(typeLabel(m.type))}</span>
           ${versionTags(m.neolegacy, state.filters.v)}
         </div>
       </div>
@@ -204,30 +271,30 @@
     const count = document.getElementById('count');
     if (!grid) return;
     const list = filtered();
-    count.textContent = list.length === 1 ? '1 Treffer' : `${list.length} Treffer`;
+    count.textContent = list.length === 1 ? t('count.one') : t('count.many', { n: list.length });
     if (!list.length) {
       grid.innerHTML = `
         <div class="panel empty" style="grid-column:1/-1">
-          <h2>Nichts gefunden</h2>
-          <p>Probiere einen anderen Suchbegriff, eine andere Version oder entferne die Filter.</p>
-          <a class="btn" href="#/einreichen">Eigenen Mod einreichen</a>
+          <h2>${esc(t('empty.title'))}</h2>
+          <p>${esc(t('empty.text'))}</p>
+          <a class="btn" href="#/einreichen">${esc(t('empty.cta'))}</a>
         </div>`;
       return;
     }
     grid.innerHTML = list.map(card).join('');
   };
 
-  /* ---------- Detailseite ---------- */
+  /* ---------- Detail page ---------- */
   const viewDetail = (slug) => {
     setNav('home');
     const m = state.mods.find((x) => x.slug === slug);
     if (!m) {
-      document.title = 'Nicht gefunden – NeoMods';
+      document.title = t('title.notfound');
       app.innerHTML = `
         <div class="panel empty">
-          <h2>Dieser Eintrag existiert nicht</h2>
-          <p>Der Mod wurde vielleicht umbenannt oder entfernt.</p>
-          <a class="btn" href="#/">Zur Übersicht</a>
+          <h2>${esc(t('detail.nf.title'))}</h2>
+          <p>${esc(t('detail.nf.text'))}</p>
+          <a class="btn" href="#/">${esc(t('detail.nf.back'))}</a>
         </div>`;
       return;
     }
@@ -235,19 +302,17 @@
     const latest = m.versions[0];
     const shots = m.screenshots || [];
     const links = m.links || {};
-    const linkItems = [
-      ['source', 'Quellcode'], ['issues', 'Fehler melden'], ['website', 'Webseite'], ['discord', 'Discord'],
-    ].filter(([k]) => links[k]).map(([k, label]) =>
-      `<a href="${esc(safeUrl(links[k]))}" target="_blank" rel="noopener noreferrer">${label}</a>`);
+    const linkItems = ['source', 'issues', 'website', 'discord'].filter((k) => links[k]).map((k) =>
+      `<a href="${esc(safeUrl(links[k]))}" target="_blank" rel="noopener noreferrer">${esc(t('link.' + k))}</a>`);
 
     app.innerHTML = `
-      <p class="crumb"><a href="#/">← Alle Mods und Plugins</a></p>
+      <p class="crumb"><a href="#/">${esc(t('detail.back'))}</a></p>
 
       <div class="detail-head">
         <img class="icon" src="${esc(safeUrl(m.icon))}" alt="" width="96" height="96">
         <div>
           <h1>${esc(m.name)}</h1>
-          <p class="by">von ${esc(m.author)}</p>
+          <p class="by">${esc(t('by', { author: m.author }))}</p>
           <p class="sum">${esc(m.summary)}</p>
         </div>
       </div>
@@ -255,31 +320,31 @@
       <div class="detail">
         <div>
           ${shots.length ? `
-          <section class="block panel" aria-label="Bilder">
+          <section class="block panel" aria-label="${esc(t('detail.images'))}">
             <div class="shots">
-              <button class="shot-main" type="button" id="shotMain" aria-label="Bild vergrößern">
-                <img src="${esc(safeUrl(shots[0]))}" alt="Screenshot 1 von ${esc(m.name)}">
+              <button class="shot-main" type="button" id="shotMain" aria-label="${esc(t('detail.enlarge'))}">
+                <img src="${esc(safeUrl(shots[0]))}" alt="${esc(t('detail.shot_alt', { n: 1, name: m.name }))}">
               </button>
               ${shots.length > 1 ? `<div class="thumbs">${shots.map((s, i) => `
-                <button class="thumb" type="button" data-i="${i}" aria-label="Bild ${i + 1} anzeigen" aria-current="${i === 0}">
+                <button class="thumb" type="button" data-i="${i}" aria-label="${esc(t('detail.show_image', { n: i + 1 }))}" aria-current="${i === 0}">
                   <img src="${esc(safeUrl(s))}" alt="">
                 </button>`).join('')}</div>` : ''}
             </div>
           </section>` : ''}
 
           <section class="block panel">
-            <h2>Beschreibung</h2>
+            <h2>${esc(t('detail.description'))}</h2>
             <div class="prose">${prose(m.description || m.summary)}</div>
           </section>
 
           <section class="block panel">
-            <h2>Versionen</h2>
+            <h2>${esc(t('detail.versions'))}</h2>
             <div class="versions">
               ${m.versions.map((v) => `
                 <article class="ver">
                   <div class="ver-head">
                     <strong>${esc(v.version)}</strong>
-                    <a class="btn${v === latest ? ' primary' : ''}" href="${esc(safeUrl(v.file))}" target="_blank" rel="noopener noreferrer">Herunterladen</a>
+                    <a class="btn${v === latest ? ' primary' : ''}" href="${esc(safeUrl(v.file))}" target="_blank" rel="noopener noreferrer">${esc(t('detail.download'))}</a>
                   </div>
                   <p class="ver-meta">${v.date ? esc(fmtDate(v.date)) : ''}</p>
                   <div class="tags">${versionTags(v.neolegacy, state.filters.v, 20)}</div>
@@ -291,16 +356,16 @@
 
         <aside class="side">
           <div class="block panel">
-            <a class="btn primary" href="${esc(safeUrl(latest.file))}" target="_blank" rel="noopener noreferrer">Herunterladen · ${esc(latest.version)}</a>
-            <p class="side-note">Der Download kommt direkt vom Autor.</p>
+            <a class="btn primary" href="${esc(safeUrl(latest.file))}" target="_blank" rel="noopener noreferrer">${esc(t('detail.download_ver', { v: latest.version }))}</a>
+            <p class="side-note">${esc(t('detail.download_note'))}</p>
           </div>
           <div class="block panel">
             <dl>
-              <div><dt>Typ</dt><dd><span class="badge ${esc(m.type)}">${typeLabel(m.type)}</span></dd></div>
-              <div><dt>Läuft mit NeoLegacy</dt><dd>${versionTags(m.neolegacy, state.filters.v, 20)}</dd></div>
-              ${(m.categories || []).length ? `<div><dt>Kategorien</dt><dd>${m.categories.map((c) => `<span class="vtag">${esc(c)}</span>`).join('')}</dd></div>` : ''}
-              <div><dt>Zuletzt aktualisiert</dt><dd>${esc(fmtDate(m.updated))}</dd></div>
-              ${linkItems.length ? `<div><dt>Links</dt><dd style="flex-direction:column;gap:.3rem">${linkItems.join('')}</dd></div>` : ''}
+              <div><dt>${esc(t('detail.type'))}</dt><dd><span class="badge ${esc(m.type)}">${esc(typeLabel(m.type))}</span></dd></div>
+              <div><dt>${esc(t('detail.runs_with'))}</dt><dd>${versionTags(m.neolegacy, state.filters.v, 20)}</dd></div>
+              ${(m.categories || []).length ? `<div><dt>${esc(t('detail.categories'))}</dt><dd>${m.categories.map((c) => `<span class="vtag">${esc(catName(c))}</span>`).join('')}</dd></div>` : ''}
+              <div><dt>${esc(t('detail.updated'))}</dt><dd>${esc(fmtDate(m.updated))}</dd></div>
+              ${linkItems.length ? `<div><dt>${esc(t('detail.links'))}</dt><dd style="flex-direction:column;gap:.3rem">${linkItems.join('')}</dd></div>` : ''}
             </dl>
           </div>
         </aside>
@@ -314,10 +379,10 @@
       const show = (i) => {
         cur = i;
         img.src = safeUrl(shots[i]);
-        img.alt = `Screenshot ${i + 1} von ${m.name}`;
-        document.querySelectorAll('.thumb').forEach((t) => t.setAttribute('aria-current', String(Number(t.dataset.i) === i)));
+        img.alt = t('detail.shot_alt', { n: i + 1, name: m.name });
+        document.querySelectorAll('.thumb').forEach((th) => th.setAttribute('aria-current', String(Number(th.dataset.i) === i)));
       };
-      document.querySelectorAll('.thumb').forEach((t) => t.addEventListener('click', () => show(Number(t.dataset.i))));
+      document.querySelectorAll('.thumb').forEach((th) => th.addEventListener('click', () => show(Number(th.dataset.i))));
       main.addEventListener('click', () => openLightbox(shots[cur], img.alt));
     }
   };
@@ -332,91 +397,88 @@
   lb.querySelector('.lb-close').addEventListener('click', () => lb.close());
   lb.addEventListener('click', (e) => { if (e.target === lb) lb.close(); });
 
-  /* ---------- Einreichen ---------- */
+  /* ---------- Submit ---------- */
   const slugify = (s) => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
 
   const viewSubmit = () => {
     setNav('submit');
-    document.title = 'Einreichen – NeoMods';
+    document.title = t('title.submit');
     const { config } = state;
     app.innerHTML = `
-      <h1 style="font:700 clamp(1.8rem,4vw,2.6rem)/1.1 var(--font-pixel);margin:0 0 .6rem">Mod oder Plugin einreichen</h1>
-      <p class="lead" style="color:var(--muted);max-width:60ch;margin:0 0 2rem">
-        Fülle das Formular aus. Du bekommst fertige Daten, die du als GitHub-Issue abschicken kannst.
-        Nach einer kurzen Prüfung wird dein Eintrag aufgenommen.
-      </p>
+      <h1 style="font:700 clamp(1.8rem,4vw,2.6rem)/1.1 var(--font-pixel);margin:0 0 .6rem">${esc(t('submit.title'))}</h1>
+      <p class="lead" style="color:var(--muted);max-width:60ch;margin:0 0 2rem">${esc(t('submit.lead'))}</p>
 
       <div class="submit">
         <form class="form panel" id="form" novalidate>
           <div class="row">
-            <label class="field">Name
-              <input name="name" required maxlength="60" placeholder="z. B. Edelstein-Werkzeuge">
+            <label class="field">${esc(t('form.name'))}
+              <input name="name" required maxlength="60" placeholder="${esc(t('form.name.ph'))}">
             </label>
-            <label class="field">Typ
-              <select name="type"><option value="mod">Mod</option><option value="plugin">Plugin</option></select>
+            <label class="field">${esc(t('form.type'))}
+              <select name="type"><option value="mod">${esc(t('badge.mod'))}</option><option value="plugin">${esc(t('badge.plugin'))}</option></select>
             </label>
           </div>
-          <label class="field">Kurzbeschreibung (ein Satz)
-            <input name="summary" required maxlength="140" placeholder="Was macht dein Mod?">
+          <label class="field">${esc(t('form.summary'))}
+            <input name="summary" required maxlength="140" placeholder="${esc(t('form.summary.ph'))}">
           </label>
-          <label class="field">Beschreibung
-            <textarea name="description" placeholder="Was kann dein Mod? So installierst du ihn. Absätze mit Leerzeile, Listen mit „- “."></textarea>
+          <label class="field">${esc(t('form.description'))}
+            <textarea name="description" placeholder="${esc(t('form.description.ph'))}"></textarea>
           </label>
           <div class="row">
-            <label class="field">Dein Name oder GitHub-Name
+            <label class="field">${esc(t('form.author'))}
               <input name="author" required maxlength="40">
             </label>
-            <label class="field">Version deines Mods
+            <label class="field">${esc(t('form.version'))}
               <input name="version" required value="1.0.0" maxlength="20">
             </label>
           </div>
           <fieldset>
-            <legend>Läuft mit NeoLegacy</legend>
+            <legend>${esc(t('form.compat'))}</legend>
             <div class="checks">
               ${config.versions.map((v, i) => `<label><input type="checkbox" name="compat" value="${esc(v)}"${i === 0 ? ' checked' : ''}> ${esc(v)}</label>`).join('')}
             </div>
           </fieldset>
           <fieldset>
-            <legend>Kategorien</legend>
+            <legend>${esc(t('form.categories'))}</legend>
             <div class="checks">
-              ${config.categories.map((c) => `<label><input type="checkbox" name="cat" value="${esc(c)}"> ${esc(c)}</label>`).join('')}
+              ${config.categories.map((c) => `<label><input type="checkbox" name="cat" value="${esc(c)}"> ${esc(catName(c))}</label>`).join('')}
             </div>
           </fieldset>
-          <label class="field">Download-Link (Datei oder GitHub-Release)
+          <label class="field">${esc(t('form.file'))}
             <input name="file" type="url" required placeholder="https://github.com/…/releases/download/…">
           </label>
           <div class="row">
-            <label class="field">Quellcode (optional)
+            <label class="field">${esc(t('form.source'))}
               <input name="source" type="url" placeholder="https://github.com/…">
             </label>
-            <label class="field">Fehler melden (optional)
+            <label class="field">${esc(t('form.issues'))}
               <input name="issues" type="url" placeholder="https://github.com/…/issues">
             </label>
           </div>
-          <label class="field">Was ist neu in dieser Version?
-            <input name="changelog" maxlength="200" placeholder="Erste Version">
+          <label class="field">${esc(t('form.changelog'))}
+            <input name="changelog" maxlength="200" placeholder="${esc(t('form.changelog.ph'))}">
           </label>
         </form>
 
         <div class="out">
           <div class="panel block">
-            <h2>Deine Daten</h2>
+            <h2>${esc(t('out.title'))}</h2>
             <p class="status" id="status" role="status"></p>
-            <pre id="json" aria-label="Erzeugte mod.json"></pre>
+            <pre id="json" aria-label="${esc(t('out.json.aria'))}"></pre>
             <div class="actions">
-              <button class="btn" type="button" id="copy">JSON kopieren</button>
-              <a class="btn pink" id="issue" href="#" target="_blank" rel="noopener noreferrer">Als GitHub-Issue einreichen</a>
+              <button class="btn" type="button" id="copy">${esc(t('out.copy'))}</button>
+              <a class="btn pink" id="issue" href="#" target="_blank" rel="noopener noreferrer">${esc(t('out.issue'))}</a>
             </div>
             <p class="hint" id="issueHint"></p>
           </div>
           <div class="panel block">
-            <h2>So geht es weiter</h2>
+            <h2>${esc(t('next.title'))}</h2>
             <ol class="steps">
-              <li>Klicke auf „Als GitHub-Issue einreichen“. Die Daten sind schon eingetragen.</li>
-              <li>Ziehe dein Icon (quadratisch, PNG) und deine Screenshots ins Issue.</li>
-              <li>Schicke das Issue ab. Wir prüfen den Eintrag und nehmen ihn auf.</li>
+              <li>${esc(t('next.1'))}</li>
+              <li>${esc(t('next.2'))}</li>
+              <li>${esc(t('next.3'))}</li>
             </ol>
-            <p class="hint" style="margin-top:1rem">Du kennst dich mit Git aus? Dann lege einen Ordner <code>mods/dein-name/</code> mit einer <code>mod.json</code> an und öffne einen Pull Request.</p>
+            <p class="hint" style="margin-top:1rem">${esc(t('next.git'))}</p>
           </div>
         </div>
       </div>
@@ -428,15 +490,16 @@
     const hint = document.getElementById('issueHint');
     const status = document.getElementById('status');
 
+    restoreForm(form);
+
     const build = () => {
       const fd = new FormData(form);
       const get = (k) => String(fd.get(k) || '').trim();
-      const compat = fd.getAll('compat');
       const links = {};
       if (get('source')) links.source = get('source');
       if (get('issues')) links.issues = get('issues');
       const data = {
-        name: get('name') || 'Name deines Mods',
+        name: get('name') || 'Name of your mod',
         type: get('type'),
         summary: get('summary'),
         description: get('description'),
@@ -446,7 +509,7 @@
         screenshots: ['screenshot1.png'],
         versions: [{
           version: get('version') || '1.0.0',
-          neolegacy: compat,
+          neolegacy: fd.getAll('compat'),
           file: get('file'),
           date: new Date().toISOString().slice(0, 10),
           changelog: get('changelog'),
@@ -458,19 +521,18 @@
 
     const update = () => {
       const data = build();
-      const slug = slugify(data.name) || 'dein-mod';
+      const slug = slugify(data.name) || 'your-mod';
       const json = JSON.stringify(data, null, 2);
-      pre.textContent = `// Ordner: mods/${slug}/mod.json\n${json}`;
+      pre.textContent = `// Folder: mods/${slug}/mod.json\n${json}`;
 
-      const body = `Neue Einreichung für NeoMods\n\nOrdnername: \`${slug}\`\n\n\`\`\`json\n${json}\n\`\`\`\n\nIcon und Screenshots hängen unten am Issue.`;
-      const url = `https://github.com/${config.repo}/issues/new?title=${encodeURIComponent('Einreichung: ' + data.name)}&body=${encodeURIComponent(body)}`;
+      // The issue text is for the site owner, so it is always in English.
+      const body = `New submission for NeoMods\n\nFolder name: \`${slug}\`\n\n\`\`\`json\n${json}\n\`\`\`\n\nIcon and screenshots are attached below.`;
+      const url = `https://github.com/${config.repo}/issues/new?title=${encodeURIComponent('Submission: ' + data.name)}&body=${encodeURIComponent(body)}`;
       const tooLong = url.length > 7500;
-      const noRepo = /DEIN-NAME/.test(config.repo);
+      const noRepo = /YOUR-NAME/.test(config.repo);
       issue.href = tooLong || noRepo ? '#' : url;
       issue.setAttribute('aria-disabled', String(tooLong || noRepo));
-      hint.textContent = noRepo
-        ? 'Hinweis für den Betreiber: Trage in config.json bei „repo“ dein GitHub-Repository ein.'
-        : tooLong ? 'Die Beschreibung ist zu lang für den Direktlink. Kopiere das JSON und füge es in ein neues Issue ein.' : '';
+      hint.textContent = noRepo ? t('out.hint.norepo') : tooLong ? t('out.hint.toolong') : '';
       hint.className = 'hint' + (noRepo || tooLong ? ' warn' : '');
       return { data, slug, json };
     };
@@ -483,11 +545,11 @@
       const { json } = update();
       try {
         await navigator.clipboard.writeText(json);
-        status.textContent = 'Kopiert.';
+        status.textContent = t('out.copied');
       } catch {
         const range = document.createRange(); range.selectNodeContents(pre);
         const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
-        status.textContent = 'Markiert. Drücke Strg+C zum Kopieren.';
+        status.textContent = t('out.selected');
       }
       setTimeout(() => { status.textContent = ''; }, 2500);
     });
@@ -495,26 +557,33 @@
 
   /* ---------- Start ---------- */
   const init = async () => {
+    setupLangSelect();
+    applyStatic();
     try {
       const [config, data] = await Promise.all([fetchJson('config.json'), fetchJson('data/mods.json')]);
       state.config = config;
       state.mods = data.mods || [];
       const pl = document.getElementById('projectLink');
       if (pl && config.projectUrl) pl.href = safeUrl(config.projectUrl);
+      const ow = document.getElementById('ownerLink');
+      if (ow && config.owner) {
+        ow.textContent = config.owner.name || ow.textContent;
+        ow.href = safeUrl(config.owner.url || ow.href);
+      }
     } catch (err) {
       console.error(err);
       app.innerHTML = `
         <div class="panel empty">
-          <h2>Die Daten konnten nicht geladen werden</h2>
-          <p>Öffne die Seite über GitHub Pages oder starte lokal einen Server mit <code>python3 -m http.server</code> und rufe <code>http://localhost:8000</code> auf.</p>
+          <h2>${esc(t('error.title'))}</h2>
+          <p>${esc(t('error.text'))}</p>
         </div>`;
       return;
     }
-    window.addEventListener('hashchange', route);
+    window.addEventListener('hashchange', () => route());
     route();
   };
 
-  // Bilder, die nicht laden, ausblenden statt Platzhalter-Symbol zu zeigen
+  // Hide images that fail to load instead of showing a broken-image icon
   app.addEventListener('error', (e) => {
     if (e.target && e.target.tagName === 'IMG') e.target.style.visibility = 'hidden';
   }, true);

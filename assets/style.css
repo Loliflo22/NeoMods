@@ -64,6 +64,15 @@ a:hover { color: #8ffbe6; }
   color: var(--text); text-decoration: none;
 }
 .brand img { image-rendering: pixelated; }
+.top-in { flex-wrap: wrap; padding-block: .5rem; }
+.top-right { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.lang {
+  font: 500 .95rem/1.2 var(--font-body);
+  color: var(--text); background: var(--edge);
+  border: 0; padding: .55rem .7rem; cursor: pointer;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,.55), inset -2px -2px 0 rgba(255,255,255,.1);
+}
+.lang option { background: var(--edge); }
 .nav { display: flex; gap: .25rem; flex-wrap: wrap; }
 .nav a {
   color: var(--muted); text-decoration: none; padding: .45rem .8rem; font-weight: 500;
@@ -286,6 +295,8 @@ dialog#lightbox img {
 /* ---------- Fußzeile ---------- */
 .foot { background: var(--bg-2); border-top: 3px solid var(--edge); padding-block: 1.6rem; color: var(--muted); font-size: .88rem; }
 .foot p { margin: 0 0 .3rem; }
+.foot .owner { margin-top: .9rem; font-size: 1rem; color: var(--text); }
+.foot .owner a { font-weight: 700; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
