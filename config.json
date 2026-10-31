@@ -1,0 +1,17 @@
+{
+  "siteName": "NeoMods",
+  "tagline": "Mods und Plugins für NeoLegacy",
+  "repo": "DEIN-NAME/neomods",
+  "projectUrl": "https://github.com/pieeebot/neoLegacy",
+  "versions": ["1.1.2", "1.1.1", "1.1.0", "1.0.0"],
+  "categories": [
+    "Gameplay",
+    "Welt & Biome",
+    "Items & Werkzeuge",
+    "Grafik & Texturen",
+    "Menü & Bedienung",
+    "Server & Verwaltung",
+    "Bibliothek",
+    "Sonstiges"
+  ]
+}

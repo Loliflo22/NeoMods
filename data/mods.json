@@ -1,0 +1,119 @@
+{
+  "generated": "2026-10-31T13:11:20.710Z",
+  "mods": [
+    {
+      "slug": "beispiel-willkommen-plugin",
+      "name": "Beispiel: Willkommens-Plugin",
+      "type": "plugin",
+      "summary": "Zeigt neuen Spielern auf deinem Server eine Willkommensnachricht.",
+      "description": "Dies ist ein Beispiel-Eintrag für ein Server-Plugin.\n\nEinstellungen:\n- Nachricht frei wählbar\n- Anzeige nur beim ersten Beitritt möglich",
+      "author": "BeispielAutor",
+      "categories": [
+        "Server & Verwaltung"
+      ],
+      "icon": "mods/beispiel-willkommen-plugin/icon.svg",
+      "screenshots": [
+        "mods/beispiel-willkommen-plugin/screenshot1.svg"
+      ],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "neolegacy": [
+            "1.1.2"
+          ],
+          "file": "mods/beispiel-willkommen-plugin/beispiel-download.txt",
+          "date": "2026-10-30",
+          "changelog": "Nachricht lässt sich jetzt in der Konfiguration ändern."
+        }
+      ],
+      "neolegacy": [
+        "1.1.2"
+      ],
+      "links": {},
+      "updated": "2026-10-30"
+    },
+    {
+      "slug": "beispiel-edelstein-werkzeuge",
+      "name": "Beispiel: Edelstein-Werkzeuge",
+      "type": "mod",
+      "summary": "Neue Werkzeuge aus Edelsteinen, die schneller abbauen und länger halten.",
+      "description": "Dies ist ein Beispiel-Eintrag. Lösche den Ordner, wenn du eigene Mods hinzufügst.\n\nWas der Mod bietet:\n- Fünf neue Edelstein-Werkzeuge\n- Neue Rezepte an der Werkbank\n- Eigene Texturen im Konsolen-Stil\n\nInstallation:\nEntpacke die Datei in den Mods-Ordner von NeoLegacy und starte das Spiel neu.",
+      "author": "BeispielAutor",
+      "categories": [
+        "Items & Werkzeuge",
+        "Gameplay"
+      ],
+      "icon": "mods/beispiel-edelstein-werkzeuge/icon.svg",
+      "screenshots": [
+        "mods/beispiel-edelstein-werkzeuge/screenshot1.svg",
+        "mods/beispiel-edelstein-werkzeuge/screenshot2.svg"
+      ],
+      "versions": [
+        {
+          "version": "1.2.0",
+          "neolegacy": [
+            "1.1.2",
+            "1.1.1"
+          ],
+          "file": "mods/beispiel-edelstein-werkzeuge/beispiel-download.txt",
+          "date": "2026-10-28",
+          "changelog": "Neue Axt und bessere Haltbarkeit."
+        },
+        {
+          "version": "1.0.0",
+          "neolegacy": [
+            "1.1.0"
+          ],
+          "file": "mods/beispiel-edelstein-werkzeuge/beispiel-download.txt",
+          "date": "2026-09-14",
+          "changelog": "Erste Version."
+        }
+      ],
+      "neolegacy": [
+        "1.1.2",
+        "1.1.1",
+        "1.1.0"
+      ],
+      "links": {
+        "source": "https://github.com/pieeebot/neoLegacy"
+      },
+      "updated": "2026-10-28"
+    },
+    {
+      "slug": "beispiel-laternen-pack",
+      "name": "Beispiel: Laternen-Pack",
+      "type": "mod",
+      "summary": "Neue Laternen in vielen Farben für gemütliche Höhlen und Dörfer.",
+      "description": "Dies ist ein Beispiel-Eintrag für einen älteren Mod, der nur mit 1.1.0 und 1.0.0 läuft.",
+      "author": "AndereBeispielAutorin",
+      "categories": [
+        "Grafik & Texturen",
+        "Welt & Biome"
+      ],
+      "icon": "mods/beispiel-laternen-pack/icon.svg",
+      "screenshots": [
+        "mods/beispiel-laternen-pack/screenshot1.svg",
+        "mods/beispiel-laternen-pack/screenshot2.svg",
+        "mods/beispiel-laternen-pack/screenshot3.svg"
+      ],
+      "versions": [
+        {
+          "version": "2.0.0",
+          "neolegacy": [
+            "1.1.0",
+            "1.0.0"
+          ],
+          "file": "mods/beispiel-laternen-pack/beispiel-download.txt",
+          "date": "2026-08-02",
+          "changelog": "Zwölf neue Farben."
+        }
+      ],
+      "neolegacy": [
+        "1.1.0",
+        "1.0.0"
+      ],
+      "links": {},
+      "updated": "2026-08-02"
+    }
+  ]
+}
