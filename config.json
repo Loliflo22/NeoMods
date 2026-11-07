@@ -6,8 +6,8 @@
     "url": "https://github.com/loliflo22"
   },
   "supabase": {
-    "url": "",
-    "anonKey": ""
+    "url": "https://uryuwipkgrwpdvhgbntt.supabase.co",
+    "anonKey": "sb_publishable_Hi4FBXZOevXTYKaDEhag3g_Ctq9sKJO"
   },
   "limits": {
     "maxFileMB": 50,
