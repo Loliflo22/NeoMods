@@ -1,11 +1,23 @@
 {
   "siteName": "NeoMods",
-  "repo": "loliflo22/NeoMods",
   "projectUrl": "https://git.neolegacy.dev/neoStudiosLCE/neoLegacy",
   "owner": {
     "name": "@Loliflo",
     "url": "https://github.com/loliflo22"
   },
+  "supabase": {
+    "url": "",
+    "anonKey": ""
+  },
+  "limits": {
+    "maxFileMB": 50,
+    "maxImageMB": 2,
+    "maxScreenshots": 6
+  },
+  "platforms": [
+    { "id": "fourkit", "name": "FourKit" },
+    { "id": "other", "name": "Other" }
+  ],
   "versions": ["1.1.2", "1.1.1", "1.1.0", "1.0.0"],
   "categories": [
     "Gameplay",

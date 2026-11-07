@@ -2,7 +2,7 @@
   'use strict';
 
   const app = document.getElementById('app');
-  const state = { config: null, mods: [], filters: { q: '', v: '', t: '', c: '', s: 'new' } };
+  const state = { config: null, mods: [], remote: 'off', filters: { q: '', v: '', t: '', p: '', c: '', s: 'new' } };
 
   /* ---------- Language ---------- */
   const I18N = window.NEOMODS_I18N;
@@ -25,7 +25,7 @@
     return vars ? s.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : '')) : s;
   };
 
-  // Category names are stored in English in mod.json. Only the display is translated.
+  // Category names are stored in English. Only the display is translated.
   const catName = (c) => (I18N.strings[lang].cats || {})[c] || I18N.strings[I18N.defaultLang].cats[c] || c;
 
   const applyStatic = () => {
@@ -43,33 +43,10 @@
     sel.addEventListener('change', () => setLang(sel.value));
   };
 
-  let draft = null; // keeps typed form values when the language changes
-  const snapshotForm = () => {
-    draft = null;
-    const f = document.getElementById('form');
-    if (!f) return;
-    draft = {};
-    f.querySelectorAll('input, select, textarea').forEach((el) => {
-      if (el.type === 'checkbox') {
-        draft[el.name] = draft[el.name] || [];
-        if (el.checked) draft[el.name].push(el.value);
-      } else draft[el.name] = el.value;
-    });
-  };
-  const restoreForm = (f) => {
-    if (!draft) return;
-    f.querySelectorAll('input, select, textarea').forEach((el) => {
-      if (el.type === 'checkbox') el.checked = (draft[el.name] || []).includes(el.value);
-      else if (el.name in draft) el.value = draft[el.name];
-    });
-    draft = null;
-  };
-
   const setLang = (code) => {
     if (!I18N.strings[code]) return;
     lang = code;
     try { localStorage.setItem(LANG_KEY, code); } catch { /* ignore */ }
-    snapshotForm();
     applyStatic();
     if (state.config) route(true);
   };
@@ -89,9 +66,21 @@
 
   const typeLabel = (type) => t(type === 'plugin' ? 'badge.plugin' : 'badge.mod');
 
+  const platformName = (id) => {
+    const hit = (state.config?.platforms || []).find((p) => p.id === id);
+    if (hit) return hit.name;
+    return id ? id.charAt(0).toUpperCase() + id.slice(1) : '';
+  };
+
   const fmtDate = (d) => {
     const dt = new Date(d);
     return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const fmtSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(bytes < 10 * 1024 * 1024 ? 1 : 0)} MB`;
   };
 
   const norm = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -122,6 +111,12 @@
       + (more > 0 ? `<span class="vtag">+${more}</span>` : '');
   };
 
+  const badges = (m) => `<span class="badge ${esc(m.type)}">${esc(typeLabel(m.type))}</span>`
+    + (m.type === 'plugin' && m.platform ? `<span class="badge plat">${esc(platformName(m.platform))}</span>` : '');
+
+  /* ---------- Views registry (upload.js and admin.js add their views here) ---------- */
+  const views = {};
+
   /* ---------- Routing ---------- */
   const parseHash = () => {
     const raw = location.hash.replace(/^#/, '') || '/';
@@ -138,8 +133,12 @@
 
   const route = (keepScroll = false) => {
     const { parts, params } = parseHash();
-    if (parts[0] === 'mod' && parts[1]) viewDetail(decodeURIComponent(parts[1]));
-    else if (parts[0] === 'einreichen') viewSubmit();
+    const first = parts[0];
+    const arg = parts[1] ? decodeURIComponent(parts[1]) : '';
+    if (first === 'mod' && arg) viewDetail(arg);
+    else if ((first === 'upload' || first === 'einreichen') && views.upload) views.upload();
+    else if (first === 'manage' && arg && views.manage) views.manage(arg);
+    else if (first === 'admin' && views.admin) views.admin();
     else viewHome(params);
     if (!keepScroll && !(parts.length === 0 && location.hash.includes('?'))) window.scrollTo(0, 0);
   };
@@ -153,12 +152,15 @@
       q: params.get('q') || '',
       v: params.get('v') || '',
       t: params.get('t') || '',
+      p: params.get('p') || '',
       c: params.get('c') || '',
       s: params.get('s') || 'new',
     };
+    if (f.t === 'mod') f.p = '';
     const latest = config.versions[0];
 
     app.innerHTML = `
+      ${state.remote === 'down' ? `<p class="notice warn-notice" role="status">${esc(t('notice.backend_down'))}</p>` : ''}
       <section class="hero">
         <h1>${esc(t('hero.h1'))}</h1>
         <p class="lead">${esc(t('hero.lead'))}</p>
@@ -180,6 +182,12 @@
           <button type="button" data-t="plugin" aria-pressed="${f.t === 'plugin'}">${esc(t('type.plugins'))}</button>
         </div>
         <div class="selects">
+          <label class="field" id="platField"${f.t === 'mod' ? ' hidden' : ''}>${esc(t('filter.platform'))}
+            <select id="plat">
+              <option value="">${esc(t('filter.platform.all'))}</option>
+              ${config.platforms.map((p) => `<option value="${esc(p.id)}"${f.p === p.id ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}
+            </select>
+          </label>
           <label class="field">${esc(t('cat.label'))}
             <select id="cat">
               <option value="">${esc(t('cat.all'))}</option>
@@ -205,6 +213,7 @@
       if (f.q) p.set('q', f.q);
       if (f.v) p.set('v', f.v);
       if (f.t) p.set('t', f.t);
+      if (f.p) p.set('p', f.p);
       if (f.c) p.set('c', f.c);
       if (f.s && f.s !== 'new') p.set('s', f.s);
       const qs = p.toString();
@@ -214,6 +223,7 @@
 
     document.getElementById('q').addEventListener('input', (e) => { f.q = e.target.value.trim(); sync(); });
     document.getElementById('cat').addEventListener('change', (e) => { f.c = e.target.value; sync(); });
+    document.getElementById('plat').addEventListener('change', (e) => { f.p = e.target.value; sync(); });
     document.getElementById('sort').addEventListener('change', (e) => { f.s = e.target.value; sync(); });
     document.getElementById('slots').addEventListener('click', (e) => {
       const b = e.target.closest('[data-v]'); if (!b) return;
@@ -224,6 +234,8 @@
     document.getElementById('types').addEventListener('click', (e) => {
       const b = e.target.closest('[data-t]'); if (!b) return;
       f.t = b.dataset.t;
+      if (f.t === 'mod') { f.p = ''; document.getElementById('plat').value = ''; }
+      document.getElementById('platField').hidden = f.t === 'mod';
       document.querySelectorAll('#types button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
       sync();
     });
@@ -232,15 +244,16 @@
   };
 
   const filtered = () => {
-    const { q, v, t: type, c, s } = state.filters;
+    const { q, v, t: type, p, c, s } = state.filters;
     const { versions } = state.config;
     const terms = norm(q).split(/\s+/).filter(Boolean);
     const list = state.mods.filter((m) => {
       if (type && m.type !== type) return false;
+      if (p && m.platform !== p) return false;
       if (v && !m.neolegacy.includes(v)) return false;
       if (c && !(m.categories || []).includes(c)) return false;
       if (terms.length) {
-        const hay = norm([m.name, m.author, m.summary, (m.categories || []).map(catName).join(' ')].join(' '));
+        const hay = norm([m.name, m.author, m.summary, platformName(m.platform), (m.categories || []).map(catName).join(' ')].join(' '));
         if (!terms.every((x) => hay.includes(x))) return false;
       }
       return true;
@@ -264,7 +277,7 @@
         <p class="by">${esc(t('by', { author: m.author }))}</p>
         <p class="sum">${esc(m.summary)}</p>
         <div class="tags">
-          <span class="badge ${esc(m.type)}">${esc(typeLabel(m.type))}</span>
+          ${badges(m)}
           ${versionTags(m.neolegacy, state.filters.v)}
         </div>
       </div>
@@ -281,7 +294,7 @@
         <div class="panel empty" style="grid-column:1/-1">
           <h2>${esc(t('empty.title'))}</h2>
           <p>${esc(t('empty.text'))}</p>
-          <a class="btn" href="#/einreichen">${esc(t('empty.cta'))}</a>
+          <a class="btn" href="#/upload">${esc(t('empty.cta'))}</a>
         </div>`;
       return;
     }
@@ -348,7 +361,7 @@
                 <article class="ver">
                   <div class="ver-head">
                     <strong>${esc(v.version)}</strong>
-                    <a class="btn${v === latest ? ' primary' : ''}" href="${esc(safeUrl(v.file))}" target="_blank" rel="noopener noreferrer">${esc(t('detail.download'))}</a>
+                    <a class="btn${v === latest ? ' primary' : ''}" href="${esc(safeUrl(v.file))}" target="_blank" rel="noopener noreferrer" download>${esc(t('detail.download'))}${v.size ? ` · ${esc(fmtSize(v.size))}` : ''}</a>
                   </div>
                   <p class="ver-meta">${v.date ? esc(fmtDate(v.date)) : ''}</p>
                   <div class="tags">${versionTags(v.neolegacy, state.filters.v, 20)}</div>
@@ -360,18 +373,19 @@
 
         <aside class="side">
           <div class="block panel">
-            <a class="btn primary" href="${esc(safeUrl(latest.file))}" target="_blank" rel="noopener noreferrer">${esc(t('detail.download_ver', { v: latest.version }))}</a>
+            <a class="btn primary" href="${esc(safeUrl(latest.file))}" target="_blank" rel="noopener noreferrer" download>${esc(t('detail.download_ver', { v: latest.version }))}</a>
             <p class="side-note">${esc(t('detail.download_note'))}</p>
           </div>
           <div class="block panel">
             <dl>
-              <div><dt>${esc(t('detail.type'))}</dt><dd><span class="badge ${esc(m.type)}">${esc(typeLabel(m.type))}</span></dd></div>
+              <div><dt>${esc(t('detail.type'))}</dt><dd>${badges(m)}</dd></div>
               <div><dt>${esc(t('detail.runs_with'))}</dt><dd>${versionTags(m.neolegacy, state.filters.v, 20)}</dd></div>
               ${(m.categories || []).length ? `<div><dt>${esc(t('detail.categories'))}</dt><dd>${m.categories.map((c) => `<span class="vtag">${esc(catName(c))}</span>`).join('')}</dd></div>` : ''}
               <div><dt>${esc(t('detail.updated'))}</dt><dd>${esc(fmtDate(m.updated))}</dd></div>
               ${linkItems.length ? `<div><dt>${esc(t('detail.links'))}</dt><dd style="flex-direction:column;gap:.3rem">${linkItems.join('')}</dd></div>` : ''}
             </dl>
           </div>
+          ${m.source === 'community' ? `<p class="side-note"><a href="#/manage/${encodeURIComponent(m.slug)}">${esc(t('manage.link'))}</a></p>` : ''}
         </aside>
       </div>
     `;
@@ -401,179 +415,42 @@
   lb.querySelector('.lb-close').addEventListener('click', () => lb.close());
   lb.addEventListener('click', (e) => { if (e.target === lb) lb.close(); });
 
-  /* ---------- Submit ---------- */
-  const slugify = (s) => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
+  /* ---------- Start ---------- */
+  const loadAll = async () => {
+    const [config, staticData] = await Promise.all([
+      fetchJson('config.json'),
+      fetchJson('data/mods.json').catch(() => ({ mods: [] })),
+    ]);
+    state.config = config;
+    window.NeoApi.init(config);
 
-  const viewSubmit = () => {
-    setNav('submit');
-    document.title = t('title.submit');
-    const { config } = state;
-    app.innerHTML = `
-      <h1 style="font:700 clamp(1.8rem,4vw,2.6rem)/1.1 var(--font-pixel);margin:0 0 .6rem">${esc(t('submit.title'))}</h1>
-      <p class="lead" style="color:var(--muted);max-width:60ch;margin:0 0 2rem">${esc(t('submit.lead'))}</p>
+    let community = [];
+    if (window.NeoApi.enabled()) {
+      try { community = await window.NeoApi.fetchProjects(); state.remote = 'ok'; }
+      catch (err) { console.warn('Community uploads unavailable:', err.code || err); state.remote = 'down'; }
+    }
 
-      <div class="submit">
-        <form class="form panel" id="form" novalidate>
-          <div class="row">
-            <label class="field">${esc(t('form.name'))}
-              <input name="name" required maxlength="60" placeholder="${esc(t('form.name.ph'))}">
-            </label>
-            <label class="field">${esc(t('form.type'))}
-              <select name="type"><option value="mod">${esc(t('badge.mod'))}</option><option value="plugin">${esc(t('badge.plugin'))}</option></select>
-            </label>
-          </div>
-          <label class="field">${esc(t('form.summary'))}
-            <input name="summary" required maxlength="140" placeholder="${esc(t('form.summary.ph'))}">
-          </label>
-          <label class="field">${esc(t('form.description'))}
-            <textarea name="description" placeholder="${esc(t('form.description.ph'))}"></textarea>
-          </label>
-          <div class="row">
-            <label class="field">${esc(t('form.author'))}
-              <input name="author" required maxlength="40">
-            </label>
-            <label class="field">${esc(t('form.version'))}
-              <input name="version" required value="1.0.0" maxlength="20">
-            </label>
-          </div>
-          <fieldset>
-            <legend>${esc(t('form.compat'))}</legend>
-            <div class="checks">
-              ${config.versions.map((v, i) => `<label><input type="checkbox" name="compat" value="${esc(v)}"${i === 0 ? ' checked' : ''}> ${esc(v)}</label>`).join('')}
-            </div>
-          </fieldset>
-          <fieldset>
-            <legend>${esc(t('form.categories'))}</legend>
-            <div class="checks">
-              ${config.categories.map((c) => `<label><input type="checkbox" name="cat" value="${esc(c)}"> ${esc(catName(c))}</label>`).join('')}
-            </div>
-          </fieldset>
-          <label class="field">${esc(t('form.file'))}
-            <input name="file" type="url" required placeholder="https://github.com/…/releases/download/…">
-          </label>
-          <div class="row">
-            <label class="field">${esc(t('form.source'))}
-              <input name="source" type="url" placeholder="https://github.com/…">
-            </label>
-            <label class="field">${esc(t('form.issues'))}
-              <input name="issues" type="url" placeholder="https://github.com/…/issues">
-            </label>
-          </div>
-          <label class="field">${esc(t('form.changelog'))}
-            <input name="changelog" maxlength="200" placeholder="${esc(t('form.changelog.ph'))}">
-          </label>
-        </form>
+    // Built-in entries get platform defaults so filters work for them too.
+    const builtIn = (staticData.mods || []).map((m) => ({
+      platform: m.type === 'plugin' ? 'other' : 'neolegacy', ...m, source: 'static',
+    }));
+    const seen = new Set();
+    state.mods = [...community, ...builtIn].filter((m) => (seen.has(m.slug) ? false : (seen.add(m.slug), true)));
 
-        <div class="out">
-          <div class="panel block">
-            <h2>${esc(t('out.title'))}</h2>
-            <p class="status" id="status" role="status"></p>
-            <pre id="json" aria-label="${esc(t('out.json.aria'))}"></pre>
-            <div class="actions">
-              <button class="btn" type="button" id="copy">${esc(t('out.copy'))}</button>
-              <a class="btn pink" id="issue" href="#" target="_blank" rel="noopener noreferrer">${esc(t('out.issue'))}</a>
-            </div>
-            <p class="hint" id="issueHint"></p>
-          </div>
-          <div class="panel block">
-            <h2>${esc(t('next.title'))}</h2>
-            <ol class="steps">
-              <li>${esc(t('next.1'))}</li>
-              <li>${esc(t('next.2'))}</li>
-              <li>${esc(t('next.3'))}</li>
-            </ol>
-            <p class="hint" style="margin-top:1rem">${esc(t('next.git'))}</p>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const form = document.getElementById('form');
-    const pre = document.getElementById('json');
-    const issue = document.getElementById('issue');
-    const hint = document.getElementById('issueHint');
-    const status = document.getElementById('status');
-
-    restoreForm(form);
-
-    const build = () => {
-      const fd = new FormData(form);
-      const get = (k) => String(fd.get(k) || '').trim();
-      const links = {};
-      if (get('source')) links.source = get('source');
-      if (get('issues')) links.issues = get('issues');
-      const data = {
-        name: get('name') || 'Name of your mod',
-        type: get('type'),
-        summary: get('summary'),
-        description: get('description'),
-        author: get('author'),
-        categories: fd.getAll('cat'),
-        icon: 'icon.png',
-        screenshots: ['screenshot1.png'],
-        versions: [{
-          version: get('version') || '1.0.0',
-          neolegacy: fd.getAll('compat'),
-          file: get('file'),
-          date: new Date().toISOString().slice(0, 10),
-          changelog: get('changelog'),
-        }],
-      };
-      if (Object.keys(links).length) data.links = links;
-      return data;
-    };
-
-    const update = () => {
-      const data = build();
-      const slug = slugify(data.name) || 'your-mod';
-      const json = JSON.stringify(data, null, 2);
-      pre.textContent = `// Folder: mods/${slug}/mod.json\n${json}`;
-
-      // The issue text is for the site owner, so it is always in English.
-      const body = `New submission for NeoMods\n\nFolder name: \`${slug}\`\n\n\`\`\`json\n${json}\n\`\`\`\n\nIcon and screenshots are attached below.`;
-      const url = `https://github.com/${config.repo}/issues/new?title=${encodeURIComponent('Submission: ' + data.name)}&body=${encodeURIComponent(body)}`;
-      const tooLong = url.length > 7500;
-      const noRepo = /YOUR-NAME/.test(config.repo);
-      issue.href = tooLong || noRepo ? '#' : url;
-      issue.setAttribute('aria-disabled', String(tooLong || noRepo));
-      hint.textContent = noRepo ? t('out.hint.norepo') : tooLong ? t('out.hint.toolong') : '';
-      hint.className = 'hint' + (noRepo || tooLong ? ' warn' : '');
-      return { data, slug, json };
-    };
-
-    form.addEventListener('input', update);
-    form.addEventListener('submit', (e) => e.preventDefault());
-    update();
-
-    document.getElementById('copy').addEventListener('click', async () => {
-      const { json } = update();
-      try {
-        await navigator.clipboard.writeText(json);
-        status.textContent = t('out.copied');
-      } catch {
-        const range = document.createRange(); range.selectNodeContents(pre);
-        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
-        status.textContent = t('out.selected');
-      }
-      setTimeout(() => { status.textContent = ''; }, 2500);
-    });
+    const pl = document.getElementById('projectLink');
+    if (pl && config.projectUrl) pl.href = safeUrl(config.projectUrl);
+    const ow = document.getElementById('ownerLink');
+    if (ow && config.owner) {
+      ow.textContent = config.owner.name || ow.textContent;
+      ow.href = safeUrl(config.owner.url || ow.href);
+    }
   };
 
-  /* ---------- Start ---------- */
   const init = async () => {
     setupLangSelect();
     applyStatic();
     try {
-      const [config, data] = await Promise.all([fetchJson('config.json'), fetchJson('data/mods.json')]);
-      state.config = config;
-      state.mods = data.mods || [];
-      const pl = document.getElementById('projectLink');
-      if (pl && config.projectUrl) pl.href = safeUrl(config.projectUrl);
-      const ow = document.getElementById('ownerLink');
-      if (ow && config.owner) {
-        ow.textContent = config.owner.name || ow.textContent;
-        ow.href = safeUrl(config.owner.url || ow.href);
-      }
+      await loadAll();
     } catch (err) {
       console.error(err);
       app.innerHTML = `
@@ -592,5 +469,21 @@
     if (e.target && e.target.tagName === 'IMG') e.target.style.visibility = 'hidden';
   }, true);
 
-  init();
+  // The helpers other scripts (upload.js, admin.js) need.
+  window.NeoApp = {
+    app, state, views, I18N, t, esc, safeUrl, catName, platformName, typeLabel, fmtDate, fmtSize, norm, prose,
+    setNav, route, openLightbox, badges, versionTags,
+    get lang() { return lang; },
+    reloadCommunity: async () => {
+      if (!window.NeoApi.enabled()) return;
+      const community = await window.NeoApi.fetchProjects();
+      const builtIn = state.mods.filter((m) => m.source === 'static');
+      state.mods = [...community, ...builtIn];
+      state.remote = 'ok';
+    },
+  };
+
+  // Wait until every script (including upload.js and admin.js) has registered its view.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();

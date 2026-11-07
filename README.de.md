@@ -1,76 +1,108 @@
 # NeoMods
 
-Ein Hub für Mods und Plugins für [NeoLegacy](https://git.neolegacy.dev/neoStudiosLCE/neoLegacy). Die Seite besteht nur aus HTML, CSS und JavaScript und läuft kostenlos auf GitHub Pages.
+Ein Hub für Mods und Plugins für [NeoLegacy](https://git.neolegacy.dev/neoStudiosLCE/neoLegacy).
+Die Seite läuft kostenlos auf GitHub Pages. Entwickler laden ihre Mods **direkt auf der Seite** hoch, ohne Konto.
+Der Eintrag erscheint sofort. Nur du kannst Einträge verstecken oder löschen.
 
-## Auf GitHub bringen
+Betreiber: [@Loliflo](https://github.com/loliflo22)
 
-1. **Repository anlegen:** Auf github.com oben rechts auf **+ → New repository**. Name zum Beispiel `neomods`, auf **Public** stellen. Keine README anlegen lassen.
-2. **Dateien hochladen:** Entpacke das ZIP. Im neuen Repository auf **uploading an existing file** klicken und den **Inhalt** des Ordners hineinziehen. Wichtig: auch die versteckten Ordner `.github` und die Datei `.nojekyll` müssen mit. Dann **Commit changes**.
-   - Wenn du Git benutzt: `git init`, `git add .`, `git commit -m "NeoMods"`, `git branch -M main`, `git remote add origin <deine-repo-url>`, `git push -u origin main`.
-3. **Pages einschalten:** Im Repository auf **Settings → Pages**. Bei **Source** die Option **GitHub Actions** wählen.
-4. **Warten:** Unter **Actions** läuft jetzt „NeoMods veröffentlichen“. Nach ein bis zwei Minuten steht die Adresse unter Settings → Pages, meistens `https://YOUR-NAME.github.io/neomods/`.
-5. **Repo-Namen eintragen:** Öffne `config.json` und ersetze bei `"repo"` den Wert `YOUR-NAME/neomods` durch deinen echten Namen. Erst dann funktioniert der Button „Als GitHub-Issue einreichen“.
-6. **Beispiele löschen:** Entferne die drei Ordner `mods/example-…`, sobald du echte Einträge hast.
+## So funktioniert es
 
-## Lokal ansehen
+| Wer | Was | Wie |
+| --- | --- | --- |
+| Besucher | ansehen, suchen, herunterladen | direkt auf der Seite |
+| Entwickler | Mod oder Plugin hochladen | Seite „Upload“, kein Konto nötig |
+| Entwickler | neue Version hinzufügen | mit dem **Bearbeitungsschlüssel**, den es nach dem Upload gibt |
+| **Du** | verstecken, löschen, aufräumen | `https://loliflo22.github.io/NeoMods/#/admin` |
 
+Die Seite selbst bleibt statisch auf GitHub. Dateien und Einträge liegen bei **Supabase** (kostenloser Tarif reicht zum Start).
+Die Sicherheitsregeln stehen in `backend/schema.sql`. Dort ist auch festgelegt, dass nur du löschen darfst.
+
+## Einrichtung (einmalig, ca. 15 Minuten)
+
+### 1. Supabase-Projekt anlegen
+1. Auf [supabase.com](https://supabase.com) registrieren und **New project** klicken.
+2. Name zum Beispiel `neomods`, eine Region in Europa (Frankfurt), ein Datenbank-Passwort vergeben und speichern.
+
+### 2. Datenbank einrichten
+1. Links **SQL Editor → New query**.
+2. Den kompletten Inhalt von `backend/schema.sql` einfügen und **Run** klicken. Es muss „Success“ erscheinen.
+   Die Datei darf bei Updates jederzeit noch einmal ausgeführt werden.
+
+### 3. Dein Admin-Konto
+1. **Authentication → Users → Add user → Create new user.** E-Mail und Passwort eintragen, „Auto Confirm User“ anhaken.
+2. **Authentication → Sign In / Providers** (je nach Version „Settings“) und **„Allow new users to sign up“ ausschalten.**
+3. Im **SQL Editor** diese Zeile mit **deiner** E-Mail ausführen:
+
+```sql
+insert into public.admins (user_id) select id from auth.users where email = 'deine@mail.de';
 ```
-node scripts/build-index.mjs
-python3 -m http.server
-```
 
-Dann `http://localhost:8000` öffnen. Die Seite funktioniert nicht, wenn du `index.html` einfach per Doppelklick öffnest, weil der Browser dann die Daten nicht laden darf.
-
-## Einen Mod hinzufügen
-
-Lege einen Ordner `mods/mein-mod/` an (nur Kleinbuchstaben, Zahlen und Bindestriche) mit diesen Dateien:
-
-- `mod.json` mit den Angaben
-- `icon.png` (quadratisch, am besten 128×128)
-- Screenshots, zum Beispiel `screenshot1.png`
-- Optional die Mod-Datei selbst. Besser ist ein Link auf ein GitHub-Release.
+### 4. Seite mit Supabase verbinden
+1. **Project Settings → API** (oder oben **Connect**). Dort stehen die **Project URL** (`https://xxxx.supabase.co`) und der **anon public key** bzw. **Publishable key**.
+2. Beides in `config.json` eintragen:
 
 ```json
-{
-  "name": "Mein Mod",
-  "type": "mod",
-  "summary": "Ein Satz, was der Mod macht.",
-  "description": "Längerer Text.\n\nListen gehen so:\n- Punkt eins\n- Punkt zwei",
-  "author": "DeinName",
-  "categories": ["Gameplay"],
-  "icon": "icon.png",
-  "screenshots": ["screenshot1.png"],
-  "versions": [
-    {
-      "version": "1.0.0",
-      "neolegacy": ["1.1.2", "1.1.1"],
-      "file": "https://github.com/DeinName/mein-mod/releases/download/v1.0.0/mein-mod.zip",
-      "date": "2026-10-31",
-      "changelog": "Erste Version."
-    }
-  ],
-  "links": { "source": "https://github.com/DeinName/mein-mod" }
+"supabase": {
+  "url": "https://xxxx.supabase.co",
+  "anonKey": "dein-key"
 }
 ```
 
-`type` ist `mod` oder `plugin`. Nach dem Speichern prüft und veröffentlicht die GitHub Action alles automatisch. Bei einem Pull Request meldet sie Fehler direkt im PR.
+Der Key ist dafür gedacht, öffentlich zu sein. Geheim bleibt **nur** der `service_role`-Key, den du nirgends einträgst.
 
-## Versionen und Kategorien ändern
+### 5. Auf GitHub hochladen
+Wie bisher: den Inhalt des Ordners ins Repository laden (inklusive des versteckten Ordners `.github`) und auf den grünen Haken unter **Actions** warten. Danach mit **Strg+Shift+R** neu laden.
 
-Alles steht in `config.json`. Die Liste `versions` gehört von neu nach alt: die erste Version wird als „neueste“ angezeigt. Ich habe `1.1.2` als neueste eingetragen und die darunter nur als Platzhalter. Passe sie an die echten NeoLegacy-Versionen an. Eine neue Version trägst du ganz oben ein.
+### 6. Testen
+1. Auf der Seite **Upload** öffnen und einen Test-Mod hochladen.
+2. `…/#/admin` öffnen, mit deinem Konto anmelden und den Test-Eintrag **Delete**n.
 
-## So kommen Einreichungen von anderen an
+## Täglicher Betrieb
 
-1. Jemand füllt auf der Seite das Formular aus und schickt es als GitHub-Issue ab.
-2. Du schaust den Eintrag an, besonders den Download-Link und die Bilder.
-3. Du legst den Ordner `mods/…` mit der `mod.json` aus dem Issue an und lädst Icon und Screenshots dazu.
+- **Nichts tun.** Neue Einträge erscheinen von selbst.
+- **Mist hochgeladen?** `…/#/admin` → beim Eintrag **Hide** (nur verstecken, rückgängig machbar) oder **Delete** (löscht Eintrag samt Dateien). Eine einzelne Version löschst du über **Releases**.
+- **Aufräumen:** Bricht jemand einen Upload ab, bleiben Dateien übrig. **Clean up unused files** im Admin-Bereich löscht sie mit einem Klick. Dateien jünger als eine Stunde werden nie angefasst.
+- Der Admin-Link steht nirgends auf der Seite. Setze dir ein Lesezeichen.
 
-Das ist bewusst von Hand: So landet nichts Ungeprüftes auf der Seite. Die Downloads liegen bei den Autoren, die Seite verlinkt sie nur.
+## Schutz vor Missbrauch
 
-## Später ausbauen
+- Besucher dürfen keine Tabelle direkt ändern. Sie können nur Einträge über geprüfte Funktionen anlegen. Jedes Feld, jeder Dateityp und jede Größe wird noch einmal **auf dem Server** geprüft.
+- Erlaubte Dateien: ZIP, JAR, DLL, 7Z, RAR (bis 50 MB) und Bilder PNG, JPG, WEBP, GIF (bis 2 MB). Keine SVG und kein HTML.
+- Pro Netzwerk höchstens **5 neue Einträge pro Stunde** und **20 neue Versionen pro Tag**.
+- Der Bearbeitungsschlüssel wird nur als Hash gespeichert. Er erlaubt **nur das Hinzufügen neuer Versionen**, kein Löschen.
+- Texte werden immer escaped, Links nur mit `https://` akzeptiert.
+- Hinweis: Hochgeladene Dateien sind nicht auf Viren geprüft. Der Footer der Seite weist darauf hin.
 
-Echte Uploads mit Login, Download-Zähler oder Bewertungen brauchen ein Backend, zum Beispiel Supabase. Die Seite kann dabei statisch bleiben.
+## Neue Plugin-Software (neben FourKit) hinzufügen
 
-## Hinweis
+In `config.json` unter `platforms` eine Zeile ergänzen, sonst ist nichts nötig:
 
-Die Seite ist jetzt standardmäßig auf Englisch und hat eine Sprachauswahl (Englisch, Deutsch, Spanisch, Französisch, Portugiesisch, Italienisch). Die Kategorien in `config.json` und `mod.json` sind englisch (z. B. `World & Biomes`). Alle Texte stehen in `assets/i18n.js`. Dein Name steht im Footer, änderbar in `config.json` unter `owner`.
+```json
+"platforms": [
+  { "id": "fourkit", "name": "FourKit" },
+  { "id": "meinserver", "name": "MeinServer" },
+  { "id": "other", "name": "Other" }
+]
+```
+
+`id` nur mit Kleinbuchstaben, Zahlen und Bindestrichen. Der Eintrag erscheint sofort im Upload-Formular und im Filter.
+
+## Weitere Einstellungen (`config.json`)
+
+- `versions`: NeoLegacy-Versionen, **neueste zuerst**. Neue Version oben eintragen.
+- `categories`: Kategorien (Englisch). Bei neuen Kategorien die Übersetzungen unter `cats` in `assets/i18n.js` ergänzen.
+- `owner`: dein Name und Link im Footer.
+- `limits`: Hinweise im Formular. Die echten Grenzen stehen in `backend/schema.sql` (50 MB, 2 MB). Ändere beides gemeinsam.
+
+Sprachen: `assets/i18n.js` und `assets/i18n.upload.js`. Ein Sprachblock genügt, fehlende Texte fallen auf Englisch zurück.
+
+## Feste Einträge ohne Datenbank (optional)
+
+Ordner `mods/dein-mod/` mit `mod.json` und Bildern werden weiter angezeigt (siehe `mods/example-gem-tools`). Praktisch für Einträge, die du selbst pflegst. Die drei `example-…`-Ordner kannst du löschen.
+
+## Gut zu wissen
+
+- Der kostenlose Supabase-Tarif hat begrenzten Speicher und Datenverkehr und pausiert Projekte, die lange keine Anfragen bekommen. Ist die Seite plötzlich leer, im Supabase-Dashboard auf **Restore** klicken. Aktuelle Grenzen: supabase.com/pricing.
+- Lokal ansehen: `node scripts/build-index.mjs`, dann `python3 -m http.server` und `http://localhost:8000` öffnen.
+- Die Datenbank-Regeln wurden mit 69 automatischen Tests auf einer echten PostgreSQL geprüft.

@@ -1,86 +1,84 @@
 # NeoMods
 
-A hub for mods and plugins for [NeoLegacy](https://git.neolegacy.dev/neoStudiosLCE/neoLegacy). The site is plain HTML, CSS and JavaScript and runs for free on GitHub Pages. A German version of this guide is in `README.de.md`.
+A hub for mods and plugins for [NeoLegacy](https://git.neolegacy.dev/neoStudiosLCE/neoLegacy).
+The site is static and runs on GitHub Pages. Developers upload their mod **on the site itself**, no account needed, and it
+shows up right away. Only the owner can hide or delete entries. A German guide with the same content is in `README.de.md`.
 
 Owner: [@Loliflo](https://github.com/loliflo22)
 
-## Put it on GitHub
+## How it works
 
-1. **Create a repository:** On github.com click **+ → New repository**. Name it for example `neomods` and set it to **Public**. Don't let GitHub add a README.
-2. **Upload the files:** Unzip the download. In the new repository click **uploading an existing file** and drag in the **contents** of the folder. The hidden folder `.github` and the file `.nojekyll` must be included. Then click **Commit changes**.
-   - With Git: `git init`, `git add .`, `git commit -m "NeoMods"`, `git branch -M main`, `git remote add origin <your-repo-url>`, `git push -u origin main`.
-3. **Turn on Pages:** Go to **Settings → Pages** and choose **GitHub Actions** as the **Source**.
-4. **Wait:** Under **Actions** the workflow "Publish NeoMods" runs. After a minute or two the address appears under Settings → Pages, for you `https://loliflo22.github.io/NeoMods/`.
-5. **Repo name:** `config.json` already points to `loliflo22/NeoMods`. If you rename the repository, change `"repo"` there, otherwise the "Submit as GitHub issue" button opens the wrong page.
-6. **Remove the examples:** Delete the three folders `mods/example-…` once you have real entries.
+| Who | What | How |
+| --- | --- | --- |
+| Visitors | browse, search, download | on the site |
+| Developers | upload a mod or plugin | "Upload" page, no account |
+| Developers | add a new version | with the **edit key** shown after the upload |
+| **Owner** | hide, delete, clean up | `https://loliflo22.github.io/NeoMods/#/admin` |
 
-## Languages
+Files and entries live in **Supabase** (the free plan is enough to start). The security rules are in `backend/schema.sql`.
 
-English is the default. Visitors can switch the language in the top right (English, Deutsch, Español, Français, Português, Italiano) and the site remembers their choice.
+## Setup (once, about 15 minutes)
 
-All texts are in `assets/i18n.js`. To add a language, add an entry to `languages` and a block with the same code under `strings`. Keys you leave out fall back to English. Category names in `mod.json` stay in English, only their display is translated.
+1. **Create a project** at [supabase.com](https://supabase.com) (pick a region close to your users, save the database password).
+2. **SQL Editor → New query:** paste all of `backend/schema.sql` and click **Run**. You can run it again after updates.
+3. **Admin account:** Authentication → Users → *Add user* (e-mail + password, auto confirm). Then turn **off** "Allow new users to sign up" under Authentication → Sign In / Providers. Then run this in the SQL editor with your e-mail:
+   ```sql
+   insert into public.admins (user_id) select id from auth.users where email = 'you@example.com';
+   ```
+4. **Connect the site:** Project Settings → API. Copy the *Project URL* and the *anon public* (or *publishable*) key into `config.json`:
+   ```json
+   "supabase": { "url": "https://xxxx.supabase.co", "anonKey": "your-key" }
+   ```
+   This key is meant to be public. Never put the `service_role` key anywhere.
+5. **Upload the files to GitHub** (including the hidden `.github` folder) and wait for the green check under Actions. Reload with Ctrl+Shift+R.
+6. **Test:** upload a test mod on the site, then open `…/#/admin`, sign in and delete it.
 
-## Owner link
+## Daily use
 
-The footer shows your name and link. Change it in `config.json` under `owner`.
+- Nothing to do. New entries appear by themselves.
+- Bad upload: `…/#/admin` → **Hide** (reversible) or **Delete** (removes the entry and its files). Single versions are under **Releases**.
+- **Clean up unused files** deletes files from failed or abandoned uploads. Files younger than an hour are never touched.
+- The admin link is not shown anywhere on the site. Bookmark it.
 
-## View it locally
+## Abuse protection
 
-```
-node scripts/build-index.mjs
-python3 -m http.server
-```
+- Visitors cannot write to any table. They can only create entries through checked functions, and every field, file type and size is checked again **on the server**.
+- Allowed: ZIP, JAR, DLL, 7Z, RAR (up to 50 MB) and PNG, JPG, WEBP, GIF (up to 2 MB). No SVG, no HTML.
+- At most **5 new entries per hour** and **20 new versions per day** per network.
+- The edit key is stored only as a hash. It can **only add versions**, never delete.
+- All text is escaped and only `https://` links are accepted.
+- Uploaded files are not virus-scanned. The footer says so.
 
-Then open `http://localhost:8000`. The site does not work if you just double-click `index.html`, because the browser blocks loading the data that way.
+## Adding another plugin platform (besides FourKit)
 
-## Add a mod
-
-Create a folder `mods/my-mod/` (lowercase letters, numbers and hyphens only) with these files:
-
-- `mod.json` with the details
-- `icon.png` (square, ideally 128×128)
-- Screenshots, for example `screenshot1.png`
-- Optionally the mod file itself. A link to a GitHub release is better.
+Add one line to `platforms` in `config.json`:
 
 ```json
-{
-  "name": "My Mod",
-  "type": "mod",
-  "summary": "One sentence about what the mod does.",
-  "description": "Longer text.\n\nLists work like this:\n- Point one\n- Point two",
-  "author": "YourName",
-  "categories": ["Gameplay"],
-  "icon": "icon.png",
-  "screenshots": ["screenshot1.png"],
-  "versions": [
-    {
-      "version": "1.0.0",
-      "neolegacy": ["1.1.2", "1.1.1"],
-      "file": "https://github.com/YourName/my-mod/releases/download/v1.0.0/my-mod.zip",
-      "date": "2026-10-31",
-      "changelog": "First release."
-    }
-  ],
-  "links": { "source": "https://github.com/YourName/my-mod" }
-}
+"platforms": [
+  { "id": "fourkit", "name": "FourKit" },
+  { "id": "myserver", "name": "MyServer" },
+  { "id": "other", "name": "Other" }
+]
 ```
 
-`type` is `mod` or `plugin`. After you save, the GitHub Action checks and publishes everything automatically. On a pull request it reports errors right in the PR.
+`id` may only use lowercase letters, numbers and hyphens. It shows up in the upload form and the filter immediately.
 
-## Change versions and categories
+## Other settings (`config.json`)
 
-Everything is in `config.json`. List `versions` from newest to oldest: the first one is shown as "latest". `1.1.2` is set as the newest, the ones below are only placeholders. Change them to the real NeoLegacy versions. Add a new version at the very top.
+- `versions`: NeoLegacy versions, **newest first**.
+- `categories`: in English. For a new one, add translations under `cats` in `assets/i18n.js`.
+- `owner`: your name and link in the footer.
+- `limits`: the hints shown in the form. The real limits are in `backend/schema.sql` (50 MB, 2 MB). Change both together.
 
-Categories are in English in `config.json` and `mod.json`. If you add one, also add its translations under `cats` in `assets/i18n.js`.
+Languages: `assets/i18n.js` and `assets/i18n.upload.js`. Missing texts fall back to English.
 
-## How submissions from others arrive
+## Built-in entries without the database (optional)
 
-1. Someone fills in the form on the site and sends it as a GitHub issue.
-2. You review the entry, especially the download link and the images.
-3. You create the `mods/…` folder with the `mod.json` from the issue and add the icon and screenshots.
+Folders like `mods/my-mod/` with a `mod.json` and images are still shown (see `mods/example-gem-tools`). The three `example-…`
+folders can be deleted.
 
-This is manual on purpose: nothing unchecked ends up on the site. Downloads stay with the authors, the site only links to them.
+## Good to know
 
-## Later
-
-Real uploads with login, download counters or ratings need a backend, for example Supabase. The site can stay static and just talk to it.
+- The free Supabase plan has limited storage and traffic and pauses projects that get no requests for a long time. If the site is suddenly empty, click **Restore** in the Supabase dashboard. Current limits: supabase.com/pricing.
+- View locally: `node scripts/build-index.mjs`, then `python3 -m http.server` and open `http://localhost:8000`.
+- The database rules were checked with 69 automated tests on a real PostgreSQL.

@@ -1,10 +1,43 @@
 {
-  "generated": "2026-10-31T13:46:00.833Z",
+  "generated": "2026-11-07T11:55:25.986Z",
   "mods": [
+    {
+      "slug": "example-welcome-plugin",
+      "name": "Example: Welcome Plugin",
+      "type": "plugin",
+      "platform": "fourkit",
+      "summary": "Shows new players on your server a welcome message.",
+      "description": "This is an example entry for a server plugin.\n\nSettings:\n- Freely chosen message\n- Can be shown on first join only",
+      "author": "ExampleAuthor",
+      "categories": [
+        "Server & Admin"
+      ],
+      "icon": "mods/example-welcome-plugin/icon.svg",
+      "screenshots": [
+        "mods/example-welcome-plugin/screenshot1.svg"
+      ],
+      "versions": [
+        {
+          "version": "0.9.0",
+          "neolegacy": [
+            "1.1.2"
+          ],
+          "file": "mods/example-welcome-plugin/example-download.txt",
+          "date": "2026-10-30",
+          "changelog": "The message can now be changed in the configuration."
+        }
+      ],
+      "neolegacy": [
+        "1.1.2"
+      ],
+      "links": {},
+      "updated": "2026-10-30"
+    },
     {
       "slug": "example-gem-tools",
       "name": "Example: Gem Tools",
       "type": "mod",
+      "platform": "neolegacy",
       "summary": "New tools made from gems that mine faster and last longer.",
       "description": "This is an example entry. Delete the folder when you add your own mods.\n\nWhat the mod adds:\n- Five new gem tools\n- New crafting recipes\n- Console-style textures\n\nInstallation:\nUnpack the file into the NeoLegacy mods folder and restart the game.",
       "author": "ExampleAuthor",
@@ -52,6 +85,7 @@
       "slug": "example-lantern-pack",
       "name": "Example: Lantern Pack",
       "type": "mod",
+      "platform": "neolegacy",
       "summary": "New lanterns in many colors for cozy caves and villages.",
       "description": "This is an example entry for an older mod that only works with 1.1.0 and 1.0.0.",
       "author": "OtherExampleAuthor",
@@ -83,39 +117,6 @@
       ],
       "links": {},
       "updated": "2026-08-02"
-    },
-    {
-      "slug": "adminfourkit",
-      "name": "adminfourkit",
-      "type": "plugin",
-      "summary": "modrate youre server with /register so bad actors dont impersonate you",
-      "description": "just create a \"fourkitadmin\" folder in plugins and drag the dll file into it",
-      "author": "daddym7sntaken",
-      "categories": [
-        "Gameplay",
-        "Menu & Controls",
-        "Server & Admin"
-      ],
-      "icon": "icon.png",
-      "screenshots": [
-        "screenshot1.png"
-      ],
-      "versions": [
-        {
-          "version": "1.3",
-          "neolegacy": [
-            "1.1.2"
-          ],
-          "file": "https://www.mediafire.com/file/kby4c8pmiintvyz/FourKitAdmin.zip/file",
-          "date": "2026-10-31",
-          "changelog": "1.3"
-        }
-      ],
-      "neolegacy": [
-        "1.1.2"
-      ],
-      "links": {},
-      "updated": "2026-10-31"
     }
   ]
 }

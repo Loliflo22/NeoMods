@@ -48,6 +48,14 @@ for (const dir of entries) {
   const description = str(m.description, 'description', { max: 8000, required: false });
   if (!['mod', 'plugin'].includes(m.type)) fail(slug, '"type" must be "mod" or "plugin"');
 
+  // Mods always belong to NeoLegacy. Plugins name the server software they run on (see config.json).
+  const platformIds = (config.platforms || []).map((x) => x.id);
+  let platform = 'neolegacy';
+  if (m.type === 'plugin') {
+    platform = typeof m.platform === 'string' && m.platform ? m.platform : 'other';
+    if (!platformIds.includes(platform)) fail(slug, `platform "${platform}" is not listed in config.json (known: ${platformIds.join(', ')})`);
+  }
+
   const categories = Array.isArray(m.categories) ? m.categories : [];
   for (const c of categories) {
     if (!config.categories.includes(c)) fail(slug, `category "${c}" is not listed in config.json`);
@@ -114,7 +122,7 @@ for (const dir of entries) {
     .sort((a, b) => config.versions.indexOf(a) - config.versions.indexOf(b));
 
   mods.push({
-    slug, name, type: m.type, summary, description, author, categories,
+    slug, name, type: m.type, platform, summary, description, author, categories,
     icon, screenshots: screenshots.slice(0, 8), versions, neolegacy, links,
     updated: versions[0].date,
   });
